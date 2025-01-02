@@ -24,7 +24,34 @@ struct UnusedImportRuleExamples {
         import Foundation
         let 👨‍👩‍👧‍👦 = #selector(NSArray.contains(_:))
         👨‍👩‍👧‍👦 == 👨‍👩‍👧‍👦
-        """)
+        """),
+        Example("""
+        import Foundation
+        enum E {
+            static let min: CGFloat = 44
+        }
+        """, configuration: [
+            "allowed_transitive_imports": [
+                [
+                    "module": "Foundation",
+                    "allowed_transitive_imports": ["CoreFoundation"],
+                ] as [String: any Sendable],
+            ],
+        ]),
+        Example("""
+        import SwiftUI
+
+        final class EditMode: ObservableObject {
+            @Published var isEditing = false
+        }
+        """, configuration: [
+            "allowed_transitive_imports": [
+                [
+                    "module": "SwiftUI",
+                    "allowed_transitive_imports": ["Foundation"],
+                ] as [String: any Sendable],
+            ],
+        ], excludeFromDocumentation: true),
     ]
 
     static let triggeringExamples = [
@@ -62,7 +89,7 @@ struct UnusedImportRuleExamples {
         ↓import Swift
         ↓import SwiftShims
         func foo(error: Swift.Error) {}
-        """)
+        """),
     ]
 
     static let corrections = [
@@ -152,30 +179,35 @@ struct UnusedImportRuleExamples {
             class A {}
             """),
         Example("""
-        ↓↓import Foundation
+        import Foundation
         typealias Foo = CFArray
+        dispatchMain()
         """, configuration: [
             "require_explicit_imports": true,
             "allowed_transitive_imports": [
                 [
                     "module": "Foundation",
-                    "allowed_transitive_imports": ["CoreFoundation"]
-                ] as [String: any Sendable]
-            ]
+                    "allowed_transitive_imports": ["CoreFoundation", "Dispatch"],
+                ] as [String: any Sendable],
+            ],
         ] as [String: any Sendable], testMultiByteOffsets: false, testOnLinux: false):
             Example("""
-            import CoreFoundation
+            import Foundation
             typealias Foo = CFArray
+            dispatchMain()
             """),
         Example("""
-        ↓↓import Foundation
+        ↓↓↓import Foundation
         typealias Foo = CFData
+        dispatchMain()
         """, configuration: [
             "require_explicit_imports": true
         ], testMultiByteOffsets: false, testOnLinux: false):
             Example("""
             import CoreFoundation
+            import Dispatch
             typealias Foo = CFData
+            dispatchMain()
             """),
         Example("""
         import Foundation
@@ -187,9 +219,9 @@ struct UnusedImportRuleExamples {
             "allowed_transitive_imports": [
                 [
                     "module": "Foundation",
-                    "allowed_transitive_imports": ["CoreFoundation"]
-                ] as [String: any Sendable]
-            ]
+                    "allowed_transitive_imports": ["CoreFoundation"],
+                ] as [String: any Sendable],
+            ],
         ] as [String: any Sendable]):
             Example("""
             import Foundation
@@ -229,6 +261,6 @@ struct UnusedImportRuleExamples {
         """):
             Example("""
             func foo(error: Swift.Error) {}
-            """)
+            """),
     ]
 }

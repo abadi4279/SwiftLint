@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule(explicitRewriter: true)
-struct UnneededParenthesesInClosureArgumentRule: OptInRule {
+@SwiftSyntaxRule(explicitRewriter: true, optIn: true)
+struct UnneededParenthesesInClosureArgumentRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -23,7 +23,7 @@ struct UnneededParenthesesInClosureArgumentRule: OptInRule {
             registerFilter(name) { any, args throws -> Any? in
                 doSomething(any, args)
             }
-            """, excludeFromDocumentation: true)
+            """, excludeFromDocumentation: true),
         ],
         triggeringExamples: [
             Example("call(arg: { ↓(bar) in })"),
@@ -59,7 +59,7 @@ struct UnneededParenthesesInClosureArgumentRule: OptInRule {
             registerFilter(name) { ↓(any, args) throws -> Any? in
                 doSomething(any, args)
             }
-            """, excludeFromDocumentation: true)
+            """, excludeFromDocumentation: true),
         ],
         corrections: [
             Example("call(arg: { ↓(bar) in })"): Example("call(arg: { bar in })"),
@@ -69,7 +69,7 @@ struct UnneededParenthesesInClosureArgumentRule: OptInRule {
                 Example("let foo = { bar -> Bool in return true }"),
             Example("method { ↓(foo, bar) in }"): Example("method { foo, bar in }"),
             Example("foo.map { ($0, $0) }.forEach { ↓(x, y) in }"): Example("foo.map { ($0, $0) }.forEach { x, y in }"),
-            Example("foo.bar { [weak self] ↓(x, y) in }"): Example("foo.bar { [weak self] x, y in }")
+            Example("foo.bar { [weak self] ↓(x, y) in }"): Example("foo.bar { [weak self] x, y in }"),
         ]
     )
 }

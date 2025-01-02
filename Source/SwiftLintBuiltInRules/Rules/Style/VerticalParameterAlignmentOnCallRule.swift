@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct VerticalParameterAlignmentOnCallRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct VerticalParameterAlignmentOnCallRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -82,7 +82,7 @@ struct VerticalParameterAlignmentOnCallRule: OptInRule {
             } completion: { _ in
                 // completion
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -119,7 +119,7 @@ struct VerticalParameterAlignmentOnCallRule: OptInRule {
             Example("""
             myFunc(foo: 0, bar:
                     baz == 0, ↓baz: true)
-            """)
+            """),
         ]
     )
 }

@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct IBInspectableInExtensionRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct IBInspectableInExtensionRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -14,14 +14,14 @@ struct IBInspectableInExtensionRule: OptInRule {
             class Foo {
               @IBInspectable private var x: Int
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
             extension Foo {
               ↓@IBInspectable private var x: Int
             }
-            """)
+            """),
         ]
     )
 }

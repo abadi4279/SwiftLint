@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  dispatch-plugins:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Parse checksum
+        id: parse_checksum
+        run: echo "checksum=$(grep -o '[a-fA-F0-9]\{64\}' Package.swift)" >> $GITHUB_OUTPUT
+      - name: Dispatch release of plugins package
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.SIMPLYDANNY_PLUGINS_SYNC }}
+          repository: SimplyDanny/SwiftLintPlugins
+          event-type: swiftlint-release
+          client-payload: |-
+            {
+              "title": "${{ github.event.release.name }}",
+              "tag": "${{ github.event.release.tag_name }}",
+              "checksum": "${{ steps.parse_checksum.outputs.checksum }}"
+            }
+  trigger-docker:
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
+    with:
+      tag: ${{ github.event.release.tag_name }}
+  upload-docker:
+    needs: trigger-docker
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload binary to existing release
+        run: make zip_linux_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  publish-pod:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve author in uppercase
+        id: retrieve_author
+        run: |
+          author=${{ github.event.release.author.login }}
+          AUTHOR=$(echo $author | tr '[:lower:]' '[:upper:]')
+          echo "name=${AUTHOR}" >> $GITHUB_OUTPUT
+      - name: Deploy to CocoaPods
+        run: make pod_publish
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets[format('COCOAPODS_TRUNK_TOKEN_{0}', steps.retrieve_author.outputs.name)] }}

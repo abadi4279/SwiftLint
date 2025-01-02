@@ -52,7 +52,12 @@ struct OpeningBraceRuleExamples {
         Example("""
             if c {}
             else {}
-            """)
+            """),
+        Example("""
+            if c /* comment */ {
+                return
+            }
+        """),
     ]
 
     static let triggeringExamples = [
@@ -193,10 +198,10 @@ struct OpeningBraceRuleExamples {
                 let bar: String? = "bar"
 
                 if
-                    let foooo = foo,
-                    let barrr = bar
+                    let foo = foo,
+                    let bar = bar
                 ↓{
-                    print(foooo + barrr)
+                    print(foo + bar)
                 }
             }
             """),
@@ -210,8 +215,8 @@ struct OpeningBraceRuleExamples {
             """),
         Example("""
             if c  ↓{}
-            else  ↓{}
-            """)
+            else /* comment */  ↓{}
+            """),
     ]
 
     static let corrections = [
@@ -531,6 +536,72 @@ struct OpeningBraceRuleExamples {
                 precedencegroup Group {
                   assignment: true
                 }
-                """)
+                """),
+        Example("""
+            if c /* comment */    {
+                return
+            }
+        """): Example("""
+                if c /* comment */ {
+                    return
+                }
+            """),
+        // https://github.com/realm/SwiftLint/issues/5598
+        Example("""
+            if c    // A comment
+            {
+                return
+            }
+        """): Example("""
+                if c { // A comment
+                    return
+                }
+            """),
+        // https://github.com/realm/SwiftLint/issues/5751
+        Example("""
+            if c    // A comment
+            { // Another comment
+                return
+            }
+        """): Example("""
+                if c { // A comment // Another comment
+                    return
+                }
+            """),
+        // https://github.com/realm/SwiftLint/issues/5751
+        Example("""
+            func foo() {
+                if q1, q2
+                {
+                    do1()
+                } else if q3, q4
+                {
+                    do2()
+                }
+            }
+            """): Example("""
+                func foo() {
+                    if q1, q2 {
+                        do1()
+                    } else if q3, q4 {
+                        do2()
+                    }
+                }
+                """),
+        Example("""
+            if
+                "test".isEmpty
+            // swiftlint:disable:next opening_brace
+            {
+                // code here
+            }
+            """): Example("""
+                if
+                    "test".isEmpty
+                // swiftlint:disable:next opening_brace
+                {
+                    // code here
+                }
+                """),
     ]
 }

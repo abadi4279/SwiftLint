@@ -1,10 +1,10 @@
 import SwiftLintCore
 
-@AutoApply
+@AutoConfigParser
 struct LineLengthConfiguration: RuleConfiguration {
     typealias Parent = LineLengthRule
 
-    @ConfigurationElement
+    @ConfigurationElement(inline: true)
     private(set) var length = SeverityLevelsConfiguration<Parent>(warning: 120, error: 200)
     @ConfigurationElement(key: "ignores_urls")
     private(set) var ignoresURLs = false
@@ -18,6 +18,6 @@ struct LineLengthConfiguration: RuleConfiguration {
     private(set) var excludedLinesPatterns: Set<String> = []
 
     var params: [RuleParameter<Int>] {
-        return length.params
+        length.params
     }
 }

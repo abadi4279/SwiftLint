@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct YodaConditionRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct YodaConditionRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -21,7 +21,7 @@ struct YodaConditionRule: OptInRule {
             Example("if foo == nil {}"),
             Example("if flags & 1 == 1 {}"),
             Example("if true {}", excludeFromDocumentation: true),
-            Example("if true == false || b, 2 != 3, {}", excludeFromDocumentation: true)
+            Example("if true == false || b, 2 != 3, {}", excludeFromDocumentation: true),
         ],
         triggeringExamples: [
             Example("if ↓42 == foo {}"),
@@ -32,7 +32,7 @@ struct YodaConditionRule: OptInRule {
             Example("while ↓1 < foo { }"),
             Example("if ↓nil == foo {}"),
             Example("while ↓1 > i + 5 {}"),
-            Example("if ↓200 <= i && i <= 299 || ↓600 <= i {}")
+            Example("if ↓200 <= i && i <= 299 || ↓600 <= i {}"),
         ])
 }
 

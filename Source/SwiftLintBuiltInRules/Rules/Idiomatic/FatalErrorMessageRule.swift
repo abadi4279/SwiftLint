@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct FatalErrorMessageRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct FatalErrorMessageRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -19,7 +19,7 @@ struct FatalErrorMessageRule: OptInRule {
             func foo() {
               fatalError(x)
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -31,7 +31,7 @@ struct FatalErrorMessageRule: OptInRule {
             func foo() {
               ↓fatalError()
             }
-            """)
+            """),
         ]
     )
 }

@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct NonOverridableClassDeclarationRule: SwiftSyntaxCorrectableRule, OptInRule {
+@SwiftSyntaxRule(correctable: true, optIn: true)
+struct NonOverridableClassDeclarationRule: Rule {
     var configuration = NonOverridableClassDeclarationConfiguration()
 
     static let description = RuleDescription(
@@ -9,7 +9,7 @@ struct NonOverridableClassDeclarationRule: SwiftSyntaxCorrectableRule, OptInRule
         name: "Class Declaration in Final Class",
         description: """
             Class methods and properties in final classes should themselves be final, just as if the declarations
-            are private. In both cases, they cannot be overriden. Using `final class` or `static` makes this explicit.
+            are private. In both cases, they cannot be overridden. Using `final class` or `static` makes this explicit.
             """,
         kind: .style,
         nonTriggeringExamples: [
@@ -50,7 +50,7 @@ struct NonOverridableClassDeclarationRule: SwiftSyntaxCorrectableRule, OptInRule
                     class func f() {}
                 }
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -72,7 +72,7 @@ struct NonOverridableClassDeclarationRule: SwiftSyntaxCorrectableRule, OptInRule
                 private ↓class var b: Bool { true }
                 private ↓class func f() {}
             }
-            """)
+            """),
         ],
         corrections: [
             Example("""
@@ -92,7 +92,7 @@ struct NonOverridableClassDeclarationRule: SwiftSyntaxCorrectableRule, OptInRule
                 final class C {
                     static var b: Bool { true }
                 }
-                """)
+                """),
         ]
     )
 }
@@ -108,7 +108,7 @@ private extension NonOverridableClassDeclarationRule {
             return .visitChildren
         }
 
-        override func visitPost(_ node: ClassDeclSyntax) {
+        override func visitPost(_: ClassDeclSyntax) {
             _ = finalClassScope.pop()
         }
 
@@ -127,20 +127,18 @@ private extension NonOverridableClassDeclarationRule {
                   inFinalClass || modifiers.contains(keyword: .private) else {
                 return
             }
-            violations.append(ReasonedRuleViolation(
+            violations.append(.init(
                 position: classKeyword.positionAfterSkippingLeadingTrivia,
                 reason: inFinalClass
-                ? "Class \(types) in final classes should themselves be final"
-                : "Private class methods and properties should be declared final",
-                severity: configuration.severity
-            ))
-            violationCorrections.append(
-                ViolationCorrection(
+                    ? "Class \(types) in final classes should themselves be final"
+                    : "Private class methods and properties should be declared final",
+                severity: configuration.severity,
+                correction: .init(
                     start: classKeyword.positionAfterSkippingLeadingTrivia,
                     end: classKeyword.endPositionBeforeTrailingTrivia,
                     replacement: configuration.finalClassModifier.rawValue
                 )
-            )
+            ))
         }
     }
 }

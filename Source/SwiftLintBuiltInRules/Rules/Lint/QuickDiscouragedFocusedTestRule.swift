@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct QuickDiscouragedFocusedTestRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct QuickDiscouragedFocusedTestRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -48,7 +48,7 @@ private extension ClassDeclSyntax {
 
 private extension FunctionDeclSyntax {
     var isSpecFunction: Bool {
-        return name.tokenKind == .identifier("spec") &&
+        name.tokenKind == .identifier("spec") &&
         signature.parameterClause.parameters.isEmpty &&
         modifiers.contains(keyword: .override)
     }

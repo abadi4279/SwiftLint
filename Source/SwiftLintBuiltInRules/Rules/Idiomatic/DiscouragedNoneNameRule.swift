@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct DiscouragedNoneNameRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct DiscouragedNoneNameRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -83,7 +83,7 @@ struct DiscouragedNoneNameRule: OptInRule {
             class MyClass {
                 var none = MyClass()
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -174,7 +174,7 @@ struct DiscouragedNoneNameRule: OptInRule {
             struct MyStruct {
                 ↓static var none = MyStruct(), a = MyStruct()
             }
-            """)
+            """),
         ]
     )
 }

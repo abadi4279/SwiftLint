@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct StrictFilePrivateRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct StrictFilePrivateRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -55,7 +55,7 @@ struct StrictFilePrivateRule: OptInRule {
                 protocol P<T> {
                     func f()
                 }
-            """, excludeFromDocumentation: true)
+            """, excludeFromDocumentation: true),
         ] + ["actor", "class", "enum", "extension", "struct"].map { type in
             Example("""
                 \(type) T: P<Int> {
@@ -100,7 +100,7 @@ struct StrictFilePrivateRule: OptInRule {
             """),
             Example("""
                 ↓fileprivate func f() {}
-            """, excludeFromDocumentation: true)
+            """, excludeFromDocumentation: true),
         ] + ["actor", "class", "enum", "extension", "struct"].map { type in
             Example("""
                 \(type) T: P<Int> {
@@ -205,7 +205,7 @@ private extension StrictFilePrivateRule {
 
 private final class ProtocolCollector<Configuration: RuleConfiguration>: ViolationsSyntaxVisitor<Configuration> {
     private(set) var protocols = [String: [ProtocolRequirementType]]()
-    private var currentProtocolName: String = ""
+    private var currentProtocolName = ""
 
     override var skippableDeclarations: [any DeclSyntaxProtocol.Type] { .allExcept(ProtocolDeclSyntax.self) }
 

@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct MultilineArgumentsRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct MultilineArgumentsRule: Rule {
     var configuration = MultilineArgumentsConfiguration()
 
     static let description = RuleDescription(
@@ -70,7 +70,7 @@ private extension MultilineArgumentsRule {
 
         private func removeViolationsBeforeFirstClosure(arguments: [Argument],
                                                         violations: [Argument]) -> [Argument] {
-            guard let firstClosure = arguments.first(where: { $0.isClosure }),
+            guard let firstClosure = arguments.first(where: \.isClosure),
                   let firstArgument = arguments.first else {
                 return violations
             }

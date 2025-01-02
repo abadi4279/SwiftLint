@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct ImplicitlyUnwrappedOptionalRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct ImplicitlyUnwrappedOptionalRule: Rule {
     var configuration = ImplicitlyUnwrappedOptionalConfiguration()
 
     static let description = RuleDescription(
@@ -21,7 +21,7 @@ struct ImplicitlyUnwrappedOptionalRule: OptInRule {
                 @IBOutlet
                 weak var bar: SomeObject!
             }
-            """, configuration: ["mode": "all_except_iboutlets"], excludeFromDocumentation: true)
+            """, configuration: ["mode": "all_except_iboutlets"], excludeFromDocumentation: true),
         ],
         triggeringExamples: [
             Example("let label: ↓UILabel!"),
@@ -38,7 +38,7 @@ struct ImplicitlyUnwrappedOptionalRule: OptInRule {
             class MyClass {
                 weak var bar: ↓SomeObject!
             }
-            """)
+            """),
         ]
     )
 }

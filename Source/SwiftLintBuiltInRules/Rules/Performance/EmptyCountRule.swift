@@ -1,8 +1,8 @@
 import SwiftLintCore
 import SwiftSyntax
 
-@SwiftSyntaxRule(foldExpressions: true, explicitRewriter: true)
-struct EmptyCountRule: OptInRule {
+@SwiftSyntaxRule(foldExpressions: true, explicitRewriter: true, optIn: true)
+struct EmptyCountRule: Rule {
     var configuration = EmptyCountConfiguration()
 
     static let description = RuleDescription(
@@ -19,7 +19,7 @@ struct EmptyCountRule: OptInRule {
             Example("[Int]().count == 0b01"),
             Example("[Int]().count == 0o07"),
             Example("discount == 0"),
-            Example("order.discount == 0")
+            Example("order.discount == 0"),
         ],
         triggeringExamples: [
             Example("[Int]().↓count == 0"),
@@ -31,7 +31,7 @@ struct EmptyCountRule: OptInRule {
             Example("[Int]().↓count == 0x00_00"),
             Example("[Int]().↓count == 0b00"),
             Example("[Int]().↓count == 0o00"),
-            Example("↓count == 0")
+            Example("↓count == 0"),
         ],
         corrections: [
             Example("[].↓count == 0"):
@@ -61,7 +61,7 @@ struct EmptyCountRule: OptInRule {
             Example("↓count == 0 && [Int]().↓count == 0o00"):
                 Example("isEmpty && [Int]().isEmpty"),
             Example("[Int]().count != 3 && [Int]().↓count != 0 || ↓count == 0 && [Int]().count > 2"):
-                Example("[Int]().count != 3 && ![Int]().isEmpty || isEmpty && [Int]().count > 2")
+                Example("[Int]().count != 3 && ![Int]().isEmpty || isEmpty && [Int]().count > 2"),
         ]
     )
 }
@@ -88,9 +88,9 @@ private extension EmptyCountRule {
             if let (count, position) = node.countNodeAndPosition(onlyAfterDot: configuration.onlyAfterDot) {
                 let newNode =
                     if let count = count.as(MemberAccessExprSyntax.self) {
-                        count.with(\.declName.baseName, "isEmpty").trimmed.as(ExprSyntax.self)
+                        ExprSyntax(count.with(\.declName.baseName, "isEmpty").trimmed)
                     } else {
-                        count.as(DeclReferenceExprSyntax.self)?.with(\.baseName, "isEmpty").trimmed.as(ExprSyntax.self)
+                        ExprSyntax(count.as(DeclReferenceExprSyntax.self)?.with(\.baseName, "isEmpty").trimmed)
                     }
                 guard let newNode else { return super.visit(node) }
                 correctionPositions.append(position)

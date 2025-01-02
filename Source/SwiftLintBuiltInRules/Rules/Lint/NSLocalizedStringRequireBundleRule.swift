@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct NSLocalizedStringRequireBundleRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct NSLocalizedStringRequireBundleRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -25,7 +25,7 @@ struct NSLocalizedStringRequireBundleRule: OptInRule {
             """),
             Example("""
             arbitraryFunctionCall("something")
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -37,7 +37,7 @@ struct NSLocalizedStringRequireBundleRule: OptInRule {
             Example("""
             ↓NSLocalizedString("someKey", tableName: "xyz",
                               value: "test", comment: "test")
-            """)
+            """),
         ]
     )
 }

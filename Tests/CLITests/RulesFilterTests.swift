@@ -1,4 +1,3 @@
-@testable import swiftlint
 import SwiftLintFramework
 import XCTest
 
@@ -8,12 +7,12 @@ final class RulesFilterTests: XCTestCase {
             rules: [
                 RuleMock1.self,
                 RuleMock2.self,
-                CorrectableRuleMock.self
+                CorrectableRuleMock.self,
             ]
         )
         let enabledRules: [any Rule] = [
             RuleMock1(),
-            CorrectableRuleMock()
+            CorrectableRuleMock(),
         ]
         let rulesFilter = RulesFilter(
             allRules: allRules,
@@ -24,7 +23,7 @@ final class RulesFilterTests: XCTestCase {
 
         XCTAssertEqual(
             Set(filteredRules.list.keys),
-            Set([RuleMock2.description.identifier])
+            Set([RuleMock2.identifier])
         )
     }
 
@@ -33,12 +32,12 @@ final class RulesFilterTests: XCTestCase {
             rules: [
                 RuleMock1.self,
                 RuleMock2.self,
-                CorrectableRuleMock.self
+                CorrectableRuleMock.self,
             ]
         )
         let enabledRules: [any Rule] = [
             RuleMock1(),
-            CorrectableRuleMock()
+            CorrectableRuleMock(),
         ]
         let rulesFilter = RulesFilter(
             allRules: allRules,
@@ -49,7 +48,7 @@ final class RulesFilterTests: XCTestCase {
 
         XCTAssertEqual(
             Set(filteredRules.list.keys),
-            Set([RuleMock1.description.identifier, CorrectableRuleMock.description.identifier])
+            Set([RuleMock1.identifier, CorrectableRuleMock.identifier])
         )
     }
 
@@ -58,12 +57,12 @@ final class RulesFilterTests: XCTestCase {
             rules: [
                 RuleMock1.self,
                 RuleMock2.self,
-                CorrectableRuleMock.self
+                CorrectableRuleMock.self,
             ]
         )
         let enabledRules: [any Rule] = [
             RuleMock1(),
-            CorrectableRuleMock()
+            CorrectableRuleMock(),
         ]
         let rulesFilter = RulesFilter(
             allRules: allRules,
@@ -74,7 +73,7 @@ final class RulesFilterTests: XCTestCase {
 
         XCTAssertEqual(
             Set(filteredRules.list.keys),
-            Set([CorrectableRuleMock.description.identifier])
+            Set([CorrectableRuleMock.identifier])
         )
     }
 
@@ -83,12 +82,12 @@ final class RulesFilterTests: XCTestCase {
             rules: [
                 RuleMock1.self,
                 RuleMock2.self,
-                CorrectableRuleMock.self
+                CorrectableRuleMock.self,
             ]
         )
         let enabledRules: [any Rule] = [
             RuleMock1(),
-            CorrectableRuleMock()
+            CorrectableRuleMock(),
         ]
         let rulesFilter = RulesFilter(
             allRules: allRules,
@@ -99,7 +98,7 @@ final class RulesFilterTests: XCTestCase {
 
         XCTAssertEqual(
             Set(filteredRules.list.keys),
-            Set([CorrectableRuleMock.description.identifier])
+            Set([CorrectableRuleMock.identifier])
         )
     }
 
@@ -108,7 +107,7 @@ final class RulesFilterTests: XCTestCase {
             rules: [
                 RuleMock1.self,
                 RuleMock2.self,
-                CorrectableRuleMock.self
+                CorrectableRuleMock.self,
             ]
         )
         let enabledRules: [any Rule] = [
@@ -123,7 +122,7 @@ final class RulesFilterTests: XCTestCase {
 
         XCTAssertEqual(
             Set(filteredRules.list.keys),
-            Set([CorrectableRuleMock.description.identifier])
+            Set([CorrectableRuleMock.identifier])
         )
     }
 }
@@ -137,11 +136,11 @@ private struct RuleMock1: Rule {
     static let description = RuleDescription(identifier: "RuleMock1", name: "",
                                              description: "", kind: .style)
 
-    init() {}
-    init(configuration: Any) throws { self.init() }
+    init() { /* conformance for test */ }
+    init(configuration _: Any) throws { self.init() }
 
-    func validate(file: SwiftLintFile) -> [StyleViolation] {
-        return []
+    func validate(file _: SwiftLintFile) -> [StyleViolation] {
+        []
     }
 }
 
@@ -152,11 +151,11 @@ private struct RuleMock2: Rule {
     static let description = RuleDescription(identifier: "RuleMock2", name: "",
                                              description: "", kind: .style)
 
-    init() {}
-    init(configuration: Any) throws { self.init() }
+    init() { /* conformance for test */ }
+    init(configuration _: Any) throws { self.init() }
 
-    func validate(file: SwiftLintFile) -> [StyleViolation] {
-        return []
+    func validate(file _: SwiftLintFile) -> [StyleViolation] {
+        []
     }
 }
 
@@ -167,14 +166,14 @@ private struct CorrectableRuleMock: CorrectableRule {
     static let description = RuleDescription(identifier: "CorrectableRuleMock", name: "",
                                              description: "", kind: .style)
 
-    init() {}
-    init(configuration: Any) throws { self.init() }
+    init() { /* conformance for test */ }
+    init(configuration _: Any) throws { self.init() }
 
-    func validate(file: SwiftLintFile) -> [StyleViolation] {
-        return []
+    func validate(file _: SwiftLintFile) -> [StyleViolation] {
+        []
     }
 
-    func correct(file: SwiftLintFile) -> [Correction] {
+    func correct(file _: SwiftLintFile) -> [Correction] {
         []
     }
 }

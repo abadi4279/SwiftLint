@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule(foldExpressions: true)
-struct NoMagicNumbersRule: OptInRule {
+@SwiftSyntaxRule(foldExpressions: true, optIn: true)
+struct NoMagicNumbersRule: Rule {
     var configuration = NoMagicNumbersConfiguration()
 
     static let description = RuleDescription(
@@ -80,7 +80,12 @@ struct NoMagicNumbersRule: OptInRule {
             Example("let range = 12..."),
             Example("let (lowerBound, upperBound) = (400, 599)"),
             Example("let a = (5, 10)"),
-            Example("let notFound = (statusCode: 404, description: \"Not Found\", isError: true)")
+            Example("let notFound = (statusCode: 404, description: \"Not Found\", isError: true)"),
+            Example("""
+            #Preview {
+                ContentView(value: 5)
+            }
+            """),
         ],
         triggeringExamples: [
             Example("foo(↓321)"),
@@ -106,7 +111,12 @@ struct NoMagicNumbersRule: OptInRule {
             }
             """),
             Example("let imageHeight = (width - ↓24)"),
-            Example("return (↓5, ↓10, ↓15)")
+            Example("return (↓5, ↓10, ↓15)"),
+            Example("""
+            #ExampleMacro {
+                ContentView(value: ↓5)
+            }
+            """),
         ]
     )
 }
@@ -119,6 +129,10 @@ private extension NoMagicNumbersRule {
 
         override func visit(_ node: PatternBindingSyntax) -> SyntaxVisitorContinueKind {
             node.isSimpleTupleAssignment ? .skipChildren : .visitChildren
+        }
+
+        override func visit(_ node: MacroExpansionExprSyntax) -> SyntaxVisitorContinueKind {
+            node.macroName.text == "Preview" ? .skipChildren : .visitChildren
         }
 
         override func visitPost(_ node: ClassDeclSyntax) {

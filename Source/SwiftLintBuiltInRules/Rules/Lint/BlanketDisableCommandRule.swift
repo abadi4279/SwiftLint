@@ -4,7 +4,11 @@ struct BlanketDisableCommandRule: Rule, SourceKitFreeRule {
     static let description = RuleDescription(
         identifier: "blanket_disable_command",
         name: "Blanket Disable Command",
-        description: "swiftlint:disable commands should be re-enabled before the end of the file",
+        description: """
+                     `swiftlint:disable` commands should use `next`, `this` or `previous` to disable rules for a \
+                     single line, or `swiftlint:enable` to re-enable the rules immediately after the violations \
+                     to be ignored, instead of disabling the rule for the rest of the file.
+                     """,
         kind: .lint,
         nonTriggeringExamples: [
             Example("""
@@ -18,7 +22,7 @@ struct BlanketDisableCommandRule: Rule, SourceKitFreeRule {
             """),
             Example("// swiftlint:disable:this unused_import"),
             Example("// swiftlint:disable:next unused_import"),
-            Example("// swiftlint:disable:previous unused_import")
+            Example("// swiftlint:disable:previous unused_import"),
         ],
         triggeringExamples: [
             Example("// swiftlint:disable ↓unused_import"),
@@ -33,7 +37,7 @@ struct BlanketDisableCommandRule: Rule, SourceKitFreeRule {
             """),
             Example("""
             // swiftlint:enable ↓unused_import
-            """)
+            """),
         ].skipWrappingInCommentTests().skipDisableCommandTests()
      )
 
@@ -144,8 +148,11 @@ struct BlanketDisableCommandRule: Rule, SourceKitFreeRule {
             }
 
             if let command = ruleIdentifierToCommandMap[disabledRuleIdentifier] {
-                let reason = "The disabled '\(disabledRuleIdentifier.stringRepresentation)' rule " +
-                             "should be re-enabled before the end of the file"
+                let reason = """
+                             Use 'next', 'this' or 'previous' instead to disable the \
+                             '\(disabledRuleIdentifier.stringRepresentation)' rule once, \
+                             or re-enable it as soon as possible`
+                             """
                 return violation(for: command, ruleIdentifier: disabledRuleIdentifier, in: file, reason: reason)
             }
             return nil
@@ -160,7 +167,7 @@ struct BlanketDisableCommandRule: Rule, SourceKitFreeRule {
         }
 
         for command in file.commands {
-            let ruleIdentifiers: Set<String> = Set(command.ruleIdentifiers.map { $0.stringRepresentation })
+            let ruleIdentifiers: Set<String> = Set(command.ruleIdentifiers.map(\.stringRepresentation))
             let intersection = ruleIdentifiers.intersection(configuration.alwaysBlanketDisableRuleIdentifiers)
             if command.action == .enable {
                 violations.append(contentsOf: intersection.map {

@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule(explicitRewriter: true)
-struct OptionalEnumCaseMatchingRule: OptInRule {
+@SwiftSyntaxRule(explicitRewriter: true, optIn: true)
+struct OptionalEnumCaseMatchingRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -46,7 +46,7 @@ struct OptionalEnumCaseMatchingRule: OptInRule {
             case .none:
               break
             }
-            """, excludeFromDocumentation: true)
+            """, excludeFromDocumentation: true),
         ],
         triggeringExamples: [
             Example("""
@@ -83,7 +83,7 @@ struct OptionalEnumCaseMatchingRule: OptInRule {
              case (_, .bar↓?): break
              default: break
             }
-            """)
+            """),
         ],
         corrections: [
             Example("""
@@ -150,7 +150,7 @@ struct OptionalEnumCaseMatchingRule: OptInRule {
              case (_, .bar): break
              default: break
             }
-            """)
+            """),
         ]
     )
 }

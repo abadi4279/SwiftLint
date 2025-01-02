@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct ExplicitTypeInterfaceRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct ExplicitTypeInterfaceRule: Rule {
     var configuration = ExplicitTypeInterfaceConfiguration()
 
     static let description = RuleDescription(
@@ -34,7 +34,7 @@ struct ExplicitTypeInterfaceRule: OptInRule {
             func f() {
                 if case .failure(let error) = errorCompletion {}
             }
-            """, excludeFromDocumentation: true)
+            """, excludeFromDocumentation: true),
         ],
         triggeringExamples: [
             Example("""
@@ -66,7 +66,7 @@ struct ExplicitTypeInterfaceRule: OptInRule {
             class Foo {
               let ↓myVar = Set<Int>(0)
             }
-            """)
+            """),
         ]
     )
 }

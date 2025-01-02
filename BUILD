@@ -8,11 +8,6 @@ load(
     "universal_swift_compiler_plugin",
 )
 
-config_setting(
-    name = "strict_concurrency_builtin_rules",
-    values = {"define": "strict_concurrency_builtin_rules=true"},
-)
-
 bool_flag(
     name = "universal_tools",
     build_setting_default = False,
@@ -26,8 +21,17 @@ config_setting(
 )
 
 copts = [
+    "-warnings-as-errors",
     "-enable-upcoming-feature",
     "ExistentialAny",
+    "-enable-upcoming-feature",
+    "ConciseMagicFile",
+    "-enable-upcoming-feature",
+    "ImportObjcForwardDeclarations",
+    "-enable-upcoming-feature",
+    "ForwardTrailingClosures",
+    "-enable-upcoming-feature",
+    "ImplicitOpenExistentials",
 ]
 
 strict_concurrency_copts = [
@@ -69,7 +73,7 @@ swift_library(
     name = "SwiftLintCore",
     package_name = "SwiftLint",
     srcs = glob(["Source/SwiftLintCore/**/*.swift"]),
-    copts = copts,  # TODO: strict_concurrency_copts
+    copts = copts + strict_concurrency_copts,
     module_name = "SwiftLintCore",
     plugins = select({
         ":universal_tools_config": [":SwiftLintCoreMacros"],
@@ -82,9 +86,10 @@ swift_library(
         "@SwiftSyntax//:SwiftParserDiagnostics_opt",
         "@SwiftSyntax//:SwiftSyntaxBuilder_opt",
         "@SwiftSyntax//:SwiftSyntax_opt",
-        "@com_github_jpsim_sourcekitten//:SourceKittenFramework",
+        ":SourceKittenFramework.wrapper",
         "@sourcekitten_com_github_jpsim_yams//:Yams",
         "@swiftlint_com_github_scottrhoyt_swifty_text_table//:SwiftyTextTable",
+        "@com_github_ileitch_swift-filename-matcher//:FilenameMatcher"
     ] + select({
         "@platforms//os:linux": ["@com_github_krzyzanowskim_cryptoswift//:CryptoSwift"],
         "//conditions:default": [":DyldWarningWorkaround"],
@@ -92,13 +97,20 @@ swift_library(
 )
 
 swift_library(
+    name = "SourceKittenFramework.wrapper",
+    srcs = ["Source/SourceKittenFrameworkWrapper/Empty.swift"],
+    module_name = "SourceKittenFrameworkWrapper",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_github_jpsim_sourcekitten//:SourceKittenFramework",
+    ],
+)
+
+swift_library(
     name = "SwiftLintBuiltInRules",
     package_name = "SwiftLint",
     srcs = glob(["Source/SwiftLintBuiltInRules/**/*.swift"]),
-    copts = copts + select({
-        ":strict_concurrency_builtin_rules": strict_concurrency_copts,
-        "//conditions:default": [],
-    }),
+    copts = copts + strict_concurrency_copts,
     module_name = "SwiftLintBuiltInRules",
     visibility = ["//visibility:public"],
     deps = [
@@ -127,37 +139,27 @@ swift_library(
     srcs = glob(
         ["Source/SwiftLintFramework/**/*.swift"],
     ),
-    copts = copts + strict_concurrency_copts,
+    copts = copts,  # TODO: strict_concurrency_copts
     module_name = "SwiftLintFramework",
     visibility = ["//visibility:public"],
     deps = [
         ":SwiftLintBuiltInRules",
         ":SwiftLintCore",
         ":SwiftLintExtraRules",
-    ],
-)
-
-swift_library(
-    name = "swiftlint.library",
-    package_name = "SwiftLint",
-    srcs = glob(["Source/swiftlint/**/*.swift"]),
-    copts = copts,  # TODO: strict_concurrency_copts
-    module_name = "swiftlint",
-    visibility = ["//visibility:public"],
-    deps = [
-        ":SwiftLintFramework",
         "@com_github_johnsundell_collectionconcurrencykit//:CollectionConcurrencyKit",
-        "@sourcekitten_com_github_apple_swift_argument_parser//:ArgumentParser",
-        "@swiftlint_com_github_scottrhoyt_swifty_text_table//:SwiftyTextTable",
     ],
 )
 
 swift_binary(
     name = "swiftlint",
+    package_name = "SwiftLint",
+    srcs = glob(["Source/swiftlint/**/*.swift"]),
     copts = copts + strict_concurrency_copts,
     visibility = ["//visibility:public"],
     deps = [
-        ":swiftlint.library",
+        ":SwiftLintFramework",
+        "@sourcekitten_com_github_apple_swift_argument_parser//:ArgumentParser",
+        "@swiftlint_com_github_scottrhoyt_swifty_text_table//:SwiftyTextTable",
     ],
 )
 
@@ -192,9 +194,10 @@ cc_library(
 
 filegroup(
     name = "LintInputs",
-    srcs = glob(["Source/**/*.swift"]) + [
+    srcs = glob(["Plugins/**/*.swift", "Source/**/*.swift"]) + [
         ".swiftlint.yml",
-        "//Tests:SwiftLintFrameworkTestsData",
+        "Package.swift",
+        "//Tests:TestSources",
     ],
     visibility = ["//Tests:__subpackages__"],
 )

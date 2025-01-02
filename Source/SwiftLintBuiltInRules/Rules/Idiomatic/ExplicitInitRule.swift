@@ -1,8 +1,8 @@
 import SwiftSyntax
 import SwiftSyntaxBuilder
 
-@SwiftSyntaxRule(explicitRewriter: true)
-struct ExplicitInitRule: OptInRule {
+@SwiftSyntaxRule(explicitRewriter: true, optIn: true)
+struct ExplicitInitRule: Rule {
     var configuration = ExplicitInitConfiguration()
 
     static let description = RuleDescription(
@@ -48,7 +48,7 @@ struct ExplicitInitRule: OptInRule {
               obs2,
               resultSelector: MyType.init
             ).asMaybe()
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -86,7 +86,7 @@ struct ExplicitInitRule: OptInRule {
 
 
                   .init(1.0)
-            """, excludeFromDocumentation: true)
+            """, excludeFromDocumentation: true),
         ],
         corrections: [
             Example("""
@@ -178,7 +178,7 @@ struct ExplicitInitRule: OptInRule {
             Example("_ = GleanMetrics.Tabs.GroupedTabExtra↓.init()"):
                 Example("_ = GleanMetrics.Tabs.GroupedTabExtra()"),
             Example("_ = Set<KsApi.Category>↓.init()"):
-                Example("_ = Set<KsApi.Category>()")
+                Example("_ = Set<KsApi.Category>()"),
         ]
     )
 }

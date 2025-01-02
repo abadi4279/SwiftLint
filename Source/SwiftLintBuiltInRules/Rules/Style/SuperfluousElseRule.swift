@@ -1,8 +1,8 @@
 import SwiftLintCore
 import SwiftSyntax
 
-@SwiftSyntaxRule(explicitRewriter: true)
-struct SuperfluousElseRule: OptInRule {
+@SwiftSyntaxRule(explicitRewriter: true, optIn: true)
+struct SuperfluousElseRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -19,7 +19,7 @@ struct SuperfluousElseRule: OptInRule {
                 } else {
                     return 3
                 }
-            """),
+                """),
             Example("""
                 if i > 0 {
                     let a = 1
@@ -32,7 +32,7 @@ struct SuperfluousElseRule: OptInRule {
                 } else {
                     return 3
                 }
-            """),
+                """),
             Example("""
                 if i > 0 {
                     if a > 1 {
@@ -41,7 +41,7 @@ struct SuperfluousElseRule: OptInRule {
                 } else {
                     return 3
                 }
-            """),
+                """),
             Example("""
                 if i > 0 {
                     if a > 1 {
@@ -54,7 +54,7 @@ struct SuperfluousElseRule: OptInRule {
                 } else {
                     return 3
                 }
-            """, excludeFromDocumentation: true),
+                """, excludeFromDocumentation: true),
             Example("""
                 for i in list {
                     if i > 12 {
@@ -68,7 +68,14 @@ struct SuperfluousElseRule: OptInRule {
                         break
                     }
                 }
-            """)
+                """),
+            Example("""
+            if #available(iOS 13, *) {
+                return
+            } else {
+                deprecatedFunction()
+            }
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -78,7 +85,7 @@ struct SuperfluousElseRule: OptInRule {
                 } ↓else {
                     return 2
                 }
-            """),
+                """),
             Example("""
                 if i > 0 {
                     return 1
@@ -87,7 +94,7 @@ struct SuperfluousElseRule: OptInRule {
                 } ↓else if i > 18 {
                     return 3
                 }
-            """),
+                """),
             Example("""
                 if i > 0 {
                     if i < 12 {
@@ -106,7 +113,7 @@ struct SuperfluousElseRule: OptInRule {
                 } ↓else {
                     return 3
                 }
-            """),
+                """),
             Example("""
                 for i in list {
                     if i > 13 {
@@ -119,7 +126,7 @@ struct SuperfluousElseRule: OptInRule {
                         throw error
                     }
                 }
-            """)
+                """),
         ],
         corrections: [
             Example("""
@@ -133,17 +140,17 @@ struct SuperfluousElseRule: OptInRule {
                         // yet another comment
                     }
                 }
-            """): Example("""
-                func f() -> Int {
-                    if i > 0 {
-                        return 1
-                        // comment
+                """): Example("""
+                    func f() -> Int {
+                        if i > 0 {
+                            return 1
+                            // comment
+                        }
+                        // another comment
+                        return 2
+                        // yet another comment
                     }
-                    // another comment
-                    return 2
-                    // yet another comment
-                }
-            """),
+                    """),
             Example("""
                 func f() -> Int {
                     if i > 0 {
@@ -155,18 +162,18 @@ struct SuperfluousElseRule: OptInRule {
                         return 3
                     }
                 }
-            """): Example("""
-                func f() -> Int {
-                    if i > 0 {
-                        return 1
-                        // comment
+                """): Example("""
+                    func f() -> Int {
+                        if i > 0 {
+                            return 1
+                            // comment
+                        }
+                        if i < 10 {
+                            return 2
+                        }
+                        return 3
                     }
-                    if i < 10 {
-                        return 2
-                    }
-                    return 3
-                }
-            """),
+                    """),
             Example("""
                 func f() -> Int {
 
@@ -178,19 +185,19 @@ struct SuperfluousElseRule: OptInRule {
                         return 2
                     }
                 }
-            """): Example("""
-                func f() -> Int {
+                """): Example("""
+                    func f() -> Int {
 
-                    if i > 0 {
-                        return 1
-                        // comment
+                        if i > 0 {
+                            return 1
+                            // comment
+                        }
+                        if i < 10 {
+                            // another comment
+                            return 2
+                        }
                     }
-                    if i < 10 {
-                        // another comment
-                        return 2
-                    }
-                }
-            """),
+                    """),
             Example("""
                 {
                     if i > 0 {
@@ -199,14 +206,14 @@ struct SuperfluousElseRule: OptInRule {
                         return 2
                     }
                 }()
-            """): Example("""
-                {
-                    if i > 0 {
-                        return 1
-                    }
-                    return 2
-                }()
-            """),
+                """): Example("""
+                    {
+                        if i > 0 {
+                            return 1
+                        }
+                        return 2
+                    }()
+                    """),
             Example("""
                 for i in list {
                     if i > 13 {
@@ -223,24 +230,24 @@ struct SuperfluousElseRule: OptInRule {
 
                     }
                 }
-            """): Example("""
-                for i in list {
-                    if i > 13 {
-                        return
+                """): Example("""
+                    for i in list {
+                        if i > 13 {
+                            return
+                        }
+                        if i > 12 {
+                            continue // continue with next index
+                        }
+                        if i > 11 {
+                            break
+                            // end of loop
+                        }
+                        if i > 10 {
+                            // Some error
+                            throw error
+                        }
                     }
-                    if i > 12 {
-                        continue // continue with next index
-                    }
-                    if i > 11 {
-                        break
-                        // end of loop
-                    }
-                    if i > 10 {
-                        // Some error
-                        throw error
-                    }
-                }
-            """)
+                    """),
         ]
     )
 }
@@ -324,10 +331,9 @@ private extension SuperfluousElseRule {
 
 private extension IfExprSyntax {
     var superfluousElse: TokenSyntax? {
-        if elseKeyword == nil {
-            return nil
-        }
-        if !lastStatementExitsScope(in: body) {
+        guard elseKeyword != nil,
+              conditions.onlyElement?.condition.is(AvailabilityConditionSyntax.self) != true,
+              lastStatementExitsScope(in: body) else {
             return nil
         }
         if let parent = parent?.as(IfExprSyntax.self) {
@@ -350,7 +356,7 @@ private extension IfExprSyntax {
     }
 
     private func lastStatementExitsScope(in block: CodeBlockSyntax) -> Bool {
-        guard let lastItem = block.statements.last?.as(CodeBlockItemSyntax.self)?.item else {
+        guard let lastItem = block.statements.last?.item else {
             return false
         }
         if [.returnStmt, .throwStmt, .continueStmt, .breakStmt].contains(lastItem.kind) {

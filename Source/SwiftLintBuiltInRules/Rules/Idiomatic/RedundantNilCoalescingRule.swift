@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule(explicitRewriter: true)
-struct RedundantNilCoalescingRule: OptInRule {
+@SwiftSyntaxRule(explicitRewriter: true, optIn: true)
+struct RedundantNilCoalescingRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -18,7 +18,7 @@ struct RedundantNilCoalescingRule: OptInRule {
         ],
         corrections: [
             Example("var myVar: Int? = nil; let foo = myVar ↓?? nil"):
-                Example("var myVar: Int? = nil; let foo = myVar")
+                Example("var myVar: Int? = nil; let foo = myVar"),
         ]
     )
 }

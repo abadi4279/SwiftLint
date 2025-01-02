@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct EmptyStringRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct EmptyStringRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -12,14 +12,14 @@ struct EmptyStringRule: OptInRule {
         nonTriggeringExamples: [
             Example("myString.isEmpty"),
             Example("!myString.isEmpty"),
-            Example("\"\"\"\nfoo==\n\"\"\"")
+            Example("\"\"\"\nfoo==\n\"\"\""),
         ],
         triggeringExamples: [
             Example(#"myString↓ == """#),
             Example(#"myString↓ != """#),
             Example(#"myString↓=="""#),
             Example(##"myString↓ == #""#"##),
-            Example(###"myString↓ == ##""##"###)
+            Example(###"myString↓ == ##""##"###),
         ]
     )
 }

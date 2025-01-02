@@ -21,14 +21,14 @@ struct FileHeaderConfiguration: SeverityBasedRuleConfiguration {
     @ConfigurationElement(key: "forbidden_pattern")
     private var forbiddenPattern: String?
 
-    private var _forbiddenRegex: NSRegularExpression?
-    private var _requiredRegex: NSRegularExpression?
+    private var _forbiddenRegex: RegularExpression?
+    private var _requiredRegex: RegularExpression?
 
     private static let defaultRegex = regex("\\bCopyright\\b", options: [.caseInsensitive])
 
     mutating func apply(configuration: Any) throws {
         guard let configuration = configuration as? [String: String] else {
-            throw Issue.unknownConfiguration(ruleID: Parent.identifier)
+            throw Issue.invalidConfiguration(ruleID: Parent.identifier)
         }
 
         // Cache the created regexes if possible.
@@ -37,26 +37,32 @@ struct FileHeaderConfiguration: SeverityBasedRuleConfiguration {
         if let requiredString = configuration[$requiredString.key] {
             self.requiredString = requiredString
             if !requiredString.contains(Self.fileNamePlaceholder) {
-                _requiredRegex = try NSRegularExpression(pattern: requiredString,
-                                                         options: Self.stringRegexOptions)
+                _requiredRegex = try .from(
+                    pattern: requiredString,
+                    options: Self.stringRegexOptions,
+                    for: Parent.identifier
+                )
             }
         } else if let requiredPattern = configuration[$requiredPattern.key] {
             self.requiredPattern = requiredPattern
             if !requiredPattern.contains(Self.fileNamePlaceholder) {
-                _requiredRegex = try .cached(pattern: requiredPattern)
+                _requiredRegex = try .from(pattern: requiredPattern, for: Parent.identifier)
             }
         }
 
         if let forbiddenString = configuration[$forbiddenString.key] {
             self.forbiddenString = forbiddenString
             if !forbiddenString.contains(Self.fileNamePlaceholder) {
-                _forbiddenRegex = try NSRegularExpression(pattern: forbiddenString,
-                                                          options: Self.stringRegexOptions)
+                _forbiddenRegex = try .from(
+                    pattern: forbiddenString,
+                    options: Self.stringRegexOptions,
+                    for: Parent.identifier
+                )
             }
         } else if let forbiddenPattern = configuration[$forbiddenPattern.key] {
             self.forbiddenPattern = forbiddenPattern
             if !forbiddenPattern.contains(Self.fileNamePlaceholder) {
-                _forbiddenRegex = try .cached(pattern: forbiddenPattern)
+                _forbiddenRegex = try .from(pattern: forbiddenPattern, for: Parent.identifier)
             }
         }
 
@@ -65,8 +71,10 @@ struct FileHeaderConfiguration: SeverityBasedRuleConfiguration {
         }
     }
 
-    private func makeRegex(for file: SwiftLintFile, using pattern: String,
-                           options: NSRegularExpression.Options, escapeFileName: Bool) -> NSRegularExpression? {
+    private func makeRegex(for file: SwiftLintFile,
+                           using pattern: String,
+                           options: NSRegularExpression.Options,
+                           escapeFileName: Bool) -> NSRegularExpression? {
         // Recompile the regex for this file...
         let replacedPattern = file.path.map { path in
             let fileName = path.bridge().lastPathComponent
@@ -85,18 +93,16 @@ struct FileHeaderConfiguration: SeverityBasedRuleConfiguration {
     }
 
     private func regexFromString(for file: SwiftLintFile, using pattern: String) -> NSRegularExpression? {
-        return makeRegex(for: file, using: pattern, options: Self.stringRegexOptions,
-                         escapeFileName: false)
+        makeRegex(for: file, using: pattern, options: Self.stringRegexOptions, escapeFileName: false)
     }
 
     private func regexFromPattern(for file: SwiftLintFile, using pattern: String) -> NSRegularExpression? {
-        return makeRegex(for: file, using: pattern, options: Self.patternRegexOptions,
-                         escapeFileName: true)
+        makeRegex(for: file, using: pattern, options: Self.patternRegexOptions, escapeFileName: true)
     }
 
     func forbiddenRegex(for file: SwiftLintFile) -> NSRegularExpression? {
         if _forbiddenRegex != nil {
-            return _forbiddenRegex
+            return _forbiddenRegex?.regex
         }
 
         if let regex = forbiddenString.flatMap({ regexFromString(for: file, using: $0) }) {
@@ -116,7 +122,7 @@ struct FileHeaderConfiguration: SeverityBasedRuleConfiguration {
 
     func requiredRegex(for file: SwiftLintFile) -> NSRegularExpression? {
         if _requiredRegex != nil {
-            return _requiredRegex
+            return _requiredRegex?.regex
         }
 
         if let regex = requiredString.flatMap({ regexFromString(for: file, using: $0) }) {

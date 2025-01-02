@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule(explicitRewriter: true)
-struct ReturnValueFromVoidFunctionRule: OptInRule {
+@SwiftSyntaxRule(explicitRewriter: true, optIn: true)
+struct ReturnValueFromVoidFunctionRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -44,7 +44,7 @@ private extension ReturnValueFromVoidFunctionRule {
                             \.leadingTrivia,
                             .newline + (returnStmt.leadingTrivia.indentation(isOnNewline: false) ?? []))
                         .with(\.trailingTrivia, returnStmt.trailingTrivia)
-                )))
+                ))),
             ]
             return super.visit(CodeBlockItemListSyntax(newStmtList))
         }

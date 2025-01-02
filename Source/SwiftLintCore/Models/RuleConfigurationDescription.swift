@@ -24,10 +24,10 @@ public protocol Documentable {
 }
 
 /// Description of a rule configuration.
-public struct RuleConfigurationDescription: Equatable {
+public struct RuleConfigurationDescription: Equatable, Sendable {
     fileprivate let options: [RuleConfigurationOption]
 
-    fileprivate init(options: [RuleConfigurationOption]) {
+    fileprivate init(options: [RuleConfigurationOption], exclusiveOptions: Set<String> = []) {
         if options.contains(.noOptions) {
             if options.count > 1 {
                 queuedFatalError(
@@ -39,27 +39,28 @@ public struct RuleConfigurationDescription: Equatable {
                 )
             }
             self.options = []
-        } else {
-            self.options = options.filter { $0.value != .empty }
+            return
         }
+        let nonEmptyOptions = options.filter { $0.value != .empty }
+        self.options = exclusiveOptions.isEmpty
+            ? nonEmptyOptions
+            : nonEmptyOptions.filter { exclusiveOptions.contains($0.key) }
     }
 
-    static func from(configuration: some RuleConfiguration) -> Self {
+    static func from(configuration: some RuleConfiguration, exclusiveOptions: Set<String> = []) -> Self {
         // Prefer custom descriptions.
         if let customDescription = configuration.parameterDescription {
-            return customDescription
+            return Self(options: customDescription.options, exclusiveOptions: exclusiveOptions)
         }
         let options: [RuleConfigurationOption] = Mirror(reflecting: configuration).children
-            .compactMap { child -> RuleConfigurationDescription? in
+            .flatMap { child in
                 // Property wrappers have names prefixed by an underscore.
-                guard let codingKey = child.label, codingKey.starts(with: "_") else {
-                    return nil
+                if child.label?.starts(with: "_") == true,
+                   let element = child.value as? any AnyConfigurationElement {
+                    return element.description.options
                 }
-                guard let element = child.value as? any AnyConfigurationElement else {
-                    return nil
-                }
-                return element.description
-            }.flatMap(\.options)
+                return []
+            }
         guard options.isNotEmpty else {
             queuedFatalError(
                 """
@@ -69,7 +70,7 @@ public struct RuleConfigurationDescription: Equatable {
                 """
             )
         }
-        return Self(options: options)
+        return Self(options: options, exclusiveOptions: exclusiveOptions)
     }
 
     func allowedKeys() -> [String] {
@@ -121,7 +122,7 @@ extension RuleConfigurationDescription: Documentable {
 }
 
 /// A single option of a ``RuleConfigurationDescription``.
-public struct RuleConfigurationOption: Equatable {
+public struct RuleConfigurationOption: Equatable, Sendable {
     /// An option serving as a marker for an empty configuration description.
     public static let noOptions = Self(key: "<nothing>", value: .empty)
 
@@ -163,7 +164,7 @@ extension RuleConfigurationOption: Documentable {
 }
 
 /// Type of an option.
-public enum OptionType: Equatable {
+public enum OptionType: Equatable, Sendable {
     /// An irrelevant option. It will be ignored in documentation serialization.
     case empty
     /// A boolean flag.
@@ -179,7 +180,7 @@ public enum OptionType: Equatable {
     /// Special option for a ``ViolationSeverity``.
     case severity(ViolationSeverity)
     /// A list of options.
-    case list([OptionType])
+    case list([Self])
     /// An option which is another set of configuration options to be nested in the serialized output.
     case nested(RuleConfigurationDescription)
 }
@@ -273,7 +274,7 @@ public struct RuleConfigurationDescriptionBuilder {
 
     /// :nodoc:
     public static func buildArray(_ components: [Description]) -> Description {
-        Description(options: components.flatMap { $0.options })
+        Description(options: components.flatMap(\.options))
     }
 }
 
@@ -332,9 +333,11 @@ public protocol AcceptableByConfigurationElement {
     func asDescription(with key: String) -> RuleConfigurationDescription
 
     /// Update the object.
-    /// 
-    /// - Parameter value: New underlying data for the object.
-    mutating func apply(_ value: Any?, ruleID: String) throws
+    ///
+    /// - Parameters:
+    ///   - value: New underlying data for the object.
+    ///   - ruleID: The rule's identifier in which context the configuration parsing runs.
+    mutating func apply(_ value: Any, ruleID: String) throws
 }
 
 /// Default implementations which are shortcuts applicable for most of the types conforming to the protocol.
@@ -343,110 +346,180 @@ public extension AcceptableByConfigurationElement {
         RuleConfigurationDescription(options: [key => asOption()])
     }
 
-    mutating func apply(_ value: Any?, ruleID: String) throws {
-        if let value {
-            self = try Self(fromAny: value, context: ruleID)
-        }
+    mutating func apply(_ value: Any, ruleID: String) throws {
+        self = try Self(fromAny: value, context: ruleID)
     }
 }
 
-/// An option type that does not need a key when used in a ``ConfigurationElement``. Its value will be inlined.
+/// An option type that can appear inlined into its using configuration.
+///
+/// The ``ConfigurationElement`` must opt into this behavior. In this case, the option does not have a key. This is
+/// almost exclusively useful for common ``RuleConfiguration``s that are used in many other rules as child
+/// configurations.
+///
+/// > Warning: A type conforming to this protocol is assumed to throw an issue in its `apply` method only when it's
+/// absolutely clear that there is an error in the YAML configuration passed in. Since it may be used in a nested
+/// context and doesn't know about the outer configuration, it's not always clear if a certain key-value is really
+/// unacceptable.
 public protocol InlinableOptionType: AcceptableByConfigurationElement {}
 
 /// A single parameter of a rule configuration.
 ///
 /// Apply it to a simple (e.g. boolean) property like
 /// ```swift
-/// @ConfigurationElement(key: "name")
+/// @ConfigurationElement
 /// var property = true
 /// ```
-/// If the wrapped element is an ``InlinableOptionType``, there are two options for its representation
-/// in the documentation:
+/// to add a (boolean) option to a configuration. The name of the option will be inferred from the name of the property.
+/// In this case, it's just `property`. CamelCase names will translated into snake_case, i.e. `myOption` is going to be
+/// translated into `my_option` in the `.swiftlint.yml` configuration file.
 ///
-/// 1. It can be inlined into the parent configuration. For that, do not provide a name as an argument. E.g.
+/// This mechanism may be overwritten with an explicitly set key:
+/// ```swift
+/// @ConfigurationElement(key: "foo_bar")
+/// var property = true
+/// ```
+///
+/// If the wrapped element is an ``InlinableOptionType``, there are three ways to represent it in the documentation:
+///
+/// 1. It can be inlined into the parent configuration. For that, add the parameter `inline: true`. E.g.
 ///    ```swift
-///    @ConfigurationElement(key: "name")
-///    var property = true
-///    @ConfigurationElement
+///    @ConfigurationElement(inline: true)
 ///    var levels = SeverityLevelsConfiguration(warning: 1, error: 2)
 ///    ```
 ///    will be documented as a linear list:
 ///    ```
-///    name: true
 ///    warning: 1
 ///    error: 2
 ///    ```
-/// 2. It can be represented as a separate nested configuration. In this case, it must have a name. E.g.
+/// 2. It can be represented as a separate nested configuration. In this case, it must not have set the `inline` flag to
+/// `true`. E.g.
 ///    ```swift
-///    @ConfigurationElement(key: "name")
-///    var property = true
-///    @ConfigurationElement(key: "levels")
+///    @ConfigurationElement
 ///    var levels = SeverityLevelsConfiguration(warning: 1, error: 2)
 ///    ```
 ///    will have a nested configuration section:
 ///    ```
-///    name: true
 ///    levels: warning: 1
 ///            error: 2
 ///    ```
+/// 3. As mentioned in the beginning, the implicit key inference mechanism can be overruled by specifying a `key` as in:
+///    ```swift
+///    @ConfigurationElement(key: "foo")
+///    var levels = SeverityLevelsConfiguration(warning: 1, error: 2)
+///    ```
+///    It will appear in the documentation as:
+///    ```
+///    foo: warning: 1
+///         error: 2
+///    ```
+///
 @propertyWrapper
-public struct ConfigurationElement<T: AcceptableByConfigurationElement & Equatable>: Equatable {
+public struct ConfigurationElement<T: AcceptableByConfigurationElement & Equatable & Sendable>: Equatable, Sendable {
+    /// A deprecation notice.
+    public enum DeprecationNotice: Sendable {
+        /// Warning suggesting an alternative option.
+        case suggestAlternative(ruleID: String, name: String)
+    }
+
     /// Wrapped option value.
-    public var wrappedValue: T
+    public var wrappedValue: T {
+        didSet {
+            if case let .suggestAlternative(id, name) = deprecationNotice {
+                Issue.deprecatedConfigurationOption(ruleID: id, key: key, alternative: name).print()
+            }
+            if wrappedValue != oldValue {
+                postprocessor(&wrappedValue)
+            }
+        }
+    }
 
     /// The wrapper itself providing access to all its data. This field can only be accessed by the
     /// element's name prefixed with a `$`.
-    public var projectedValue: ConfigurationElement {
+    public var projectedValue: Self {
         get { self }
         _modify { yield &self }
     }
 
     /// Name of this configuration entry.
-    public let key: String
+    public var key: String
 
-    private let postprocessor: (inout T) throws -> Void
+    /// Whether this configuration element will be inlined into its description.
+    public let inline: Bool
+
+    private let deprecationNotice: DeprecationNotice?
+    private let postprocessor: @Sendable (inout T) -> Void
 
     /// Default constructor.
     ///
     /// - Parameters:
     ///   - value: Value to be wrapped.
-    ///   - key: Name of the option.
+    ///   - key: Optional name of the option. If not specified, it will be inferred from the attributed property.
+    ///   - deprecationNotice: An optional deprecation notice in case an option is outdated and/or has been replaced by
+    ///                        an alternative.
     ///   - postprocessor: Function to be applied to the wrapped value after parsing to validate and modify it.
-    public init(wrappedValue value: T, key: String, postprocessor: @escaping (inout T) throws -> Void = { _ in }) {
-        self.wrappedValue = value
-        self.key = key
-        self.postprocessor = postprocessor
+    public init(wrappedValue value: T,
+                key: String,
+                deprecationNotice: DeprecationNotice? = nil,
+                postprocessor: @escaping @Sendable (inout T) -> Void = { _ in }) {
+        // swiftlint:disable:previous no_empty_block
+        self.init(
+            wrappedValue: value,
+            key: key,
+            inline: false,
+            deprecationNotice: deprecationNotice,
+            postprocessor: postprocessor
+        )
 
-        // Validate and modify the set value immediately. An exception means invalid defaults.
-        try! performAfterParseOperations() // swiftlint:disable:this force_try
+        // Modify the set value immediately.
+        postprocessor(&wrappedValue)
     }
 
     /// Constructor for optional values.
     ///
-    /// It allows to skip explicit initialization with `nil` of the property.
+    /// It allows to skip explicit initialization of the property with `nil`.
     ///
-    /// - Parameter value: Value to be wrapped.
+    /// - Parameters:
+    ///   - key: Optional name of the option. If not specified, it will be inferred from the attributed property.
     public init<Wrapped>(key: String) where T == Wrapped? {
-        self.init(wrappedValue: nil, key: key)
+        self.init(wrappedValue: nil, key: key, inline: false)
     }
 
-    /// Constructor for a ``ConfigurationElement`` without a key.
-    ///
-    /// ``InlinableOptionType``s are allowed to have an empty key. The configuration will be inlined into its
-    /// parent configuration in this specific case.
+    /// Constructor for an ``InlinableOptionType`` without a key.
     ///
     /// - Parameters:
     ///   - value: Value to be wrapped.
-    public init(wrappedValue value: T) where T: InlinableOptionType {
-        self.init(wrappedValue: value, key: "")
+    ///   - inline: If `true`, the option will be handled as it would be part of its parent. All of its options
+    ///             will be inlined. Otherwise, it will be treated as a normal nested configuration with its name
+    ///             inferred from the name of the attributed property.
+    public init(wrappedValue value: T, inline: Bool) where T: InlinableOptionType {
+        assert(inline, "Only 'inline: true' is allowed at the moment.")
+        self.init(wrappedValue: value, key: "", inline: inline)
     }
 
-    /// Run operations to validate and modify the parsed value.
-    public mutating func performAfterParseOperations() throws {
-        try postprocessor(&wrappedValue)
+    /// Constructor for an ``InlinableOptionType`` with a name. The configuration will explicitly not be inlined.
+    ///
+    /// - Parameters:
+    ///   - value: Value to be wrapped.
+    ///   - key: Name of the option.
+    public init(wrappedValue value: T, key: String) where T: InlinableOptionType {
+        self.init(wrappedValue: value, key: key, inline: false)
     }
 
-    public static func == (lhs: ConfigurationElement, rhs: ConfigurationElement) -> Bool {
+    private init(wrappedValue: T,
+                 key: String,
+                 inline: Bool,
+                 deprecationNotice: DeprecationNotice? = nil,
+                 postprocessor: @escaping @Sendable (inout T) -> Void = { _ in }) {
+        // swiftlint:disable:previous no_empty_block
+        self.wrappedValue = wrappedValue
+        self.key = key
+        self.inline = inline
+        self.deprecationNotice = deprecationNotice
+        self.postprocessor = postprocessor
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.wrappedValue == rhs.wrappedValue && lhs.key == rhs.key
     }
 }
@@ -461,10 +534,7 @@ extension ConfigurationElement: AnyConfigurationElement {
 
 extension Optional: AcceptableByConfigurationElement where Wrapped: AcceptableByConfigurationElement {
     public func asOption() -> OptionType {
-        if let value = self {
-            return value.asOption()
-        }
-        return .empty
+        self?.asOption() ?? .empty
     }
 
     public init(fromAny value: Any, context ruleID: String) throws {
@@ -575,7 +645,7 @@ extension RegularExpression: AcceptableByConfigurationElement {
 
 // MARK: RuleConfiguration conformances
 
-public extension RuleConfiguration {
+public extension AcceptableByConfigurationElement where Self: RuleConfiguration {
     func asOption() -> OptionType {
         .nested(.from(configuration: self))
     }
@@ -587,13 +657,11 @@ public extension RuleConfiguration {
         return RuleConfigurationDescription(options: [key => asOption()])
     }
 
-    mutating func apply(_ value: Any?, ruleID: String) throws {
-        if let value {
-            try apply(configuration: value)
-        }
+    mutating func apply(_ value: Any, ruleID _: String) throws {
+        try apply(configuration: value)
     }
 
-    init(fromAny value: Any, context ruleID: String) throws {
+    init(fromAny _: Any, context _: String) throws {
         throw Issue.genericError("Do not call this initializer")
     }
 }

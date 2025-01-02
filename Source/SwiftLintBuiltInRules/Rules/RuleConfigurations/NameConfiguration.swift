@@ -1,7 +1,7 @@
 import Foundation
 import SwiftLintCore
 
-struct NameConfiguration<Parent: Rule>: RuleConfiguration {
+struct NameConfiguration<Parent: Rule>: RuleConfiguration, InlinableOptionType {
     typealias Severity = SeverityConfiguration<Parent>
     typealias SeverityLevels = SeverityLevelsConfiguration<Parent>
     typealias StartWithLowercaseConfiguration = ChildOptionSeverityConfiguration<Parent>
@@ -20,11 +20,11 @@ struct NameConfiguration<Parent: Rule>: RuleConfiguration {
     private(set) var validatesStartWithLowercase = StartWithLowercaseConfiguration.error
 
     var minLengthThreshold: Int {
-        return max(minLength.warning, minLength.error ?? minLength.warning)
+        max(minLength.warning, minLength.error ?? minLength.warning)
     }
 
     var maxLengthThreshold: Int {
-        return min(maxLength.warning, maxLength.error ?? maxLength.warning)
+        min(maxLength.warning, maxLength.error ?? maxLength.warning)
     }
 
     var allowedSymbolsAndAlphanumerics: CharacterSet {
@@ -51,7 +51,7 @@ struct NameConfiguration<Parent: Rule>: RuleConfiguration {
 
     mutating func apply(configuration: Any) throws {
         guard let configurationDict = configuration as? [String: Any] else {
-            throw Issue.unknownConfiguration(ruleID: Parent.identifier)
+            throw Issue.invalidConfiguration(ruleID: Parent.identifier)
         }
 
         if let minLengthConfiguration = configurationDict[$minLength.key] {

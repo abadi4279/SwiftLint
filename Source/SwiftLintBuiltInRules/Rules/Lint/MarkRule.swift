@@ -2,7 +2,7 @@ import Foundation
 import SwiftSyntax
 
 @SwiftSyntaxRule(explicitRewriter: true)
-struct MarkRule: CorrectableRule {
+struct MarkRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -47,9 +47,8 @@ private struct ViolationResult {
 private extension TokenSyntax {
     private enum Mark {
         static func lint(in text: String) -> [() -> String] {
-            let range = NSRange(text.startIndex..<text.endIndex, in: text)
-            return regex(badPattern).matches(in: text, options: [], range: range).compactMap { match in
-                isIgnoredCases(text, range: range) ? nil : {
+            regex(badPattern).matches(in: text, options: [], range: text.fullNSRange).compactMap { match in
+                isIgnoredCases(text, range: match.range) ? nil : {
                     var corrected = replace(text, range: match.range(at: 2), to: "- ")
                     corrected = replace(corrected, range: match.range(at: 1), to: "// MARK: ")
                     if !text.hasSuffix(" "), corrected.hasSuffix(" ") {
@@ -61,7 +60,7 @@ private extension TokenSyntax {
         }
 
         private static func isIgnoredCases(_ text: String, range: NSRange) -> Bool {
-            regex(goodPattern).firstMatch(in: text, range: range) != nil
+            range.lowerBound != 0 || regex(goodPattern).firstMatch(in: text, range: text.fullNSRange) != nil
         }
 
         private static let goodPattern = [
@@ -71,13 +70,13 @@ private extension TokenSyntax {
             "^// MARK:$",
 
             // comment start with `Mark ...` is ignored
-            "^\(twoOrThreeSlashes) +[Mm]ark[^:]"
+            "^\(twoOrThreeSlashes) +[Mm]ark[^:]",
         ].map(nonCapturingGroup).joined(separator: "|")
 
         private static let badPattern = capturingGroup([
             "MARK[^\\s:]",
             "[Mm]ark",
-            "MARK"
+            "MARK",
         ].map(basePattern).joined(separator: "|")) + capturingGroup(hyphenOrEmpty)
 
         private static let anySpace = " *"

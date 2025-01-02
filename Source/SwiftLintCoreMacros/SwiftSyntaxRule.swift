@@ -5,9 +5,9 @@ import SwiftSyntaxMacros
 enum SwiftSyntaxRule: ExtensionMacro {
     static func expansion(
         of node: AttributeSyntax,
-        attachedTo declaration: some DeclGroupSyntax,
+        attachedTo _: some DeclGroupSyntax,
         providingExtensionsOf type: some TypeSyntaxProtocol,
-        conformingTo protocols: [TypeSyntax],
+        conformingTo _: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
         [
@@ -19,58 +19,68 @@ enum SwiftSyntaxRule: ExtensionMacro {
                 }
                 """
             ),
-            try makeExtension(dependingOn: node.foldArgument, in: context, with: """
-                extension \(type) {
-                    func preprocess(file: SwiftLintFile) -> SourceFileSyntax? {
-                        file.foldedSyntaxTree
+            try node.foldArgument(context).ifTrue(
+                try ExtensionDeclSyntax("""
+                    extension \(type) {
+                        func preprocess(file: SwiftLintFile) -> SourceFileSyntax? {
+                            file.foldedSyntaxTree
+                        }
                     }
-                }
-                """
+                    """
+                )
             ),
-            try makeExtension(dependingOn: node.explicitRewriterArgument, in: context, with: """
-                extension \(type): SwiftSyntaxCorrectableRule {
-                    func makeRewriter(file: SwiftLintFile) -> ViolationsSyntaxRewriter<ConfigurationType>? {
-                        Rewriter(configuration: configuration, file: file)
+            try node.explicitRewriterArgument(context).ifTrue(
+                try ExtensionDeclSyntax("""
+                    extension \(type): SwiftSyntaxCorrectableRule {
+                        func makeRewriter(file: SwiftLintFile) -> ViolationsSyntaxRewriter<ConfigurationType>? {
+                            Rewriter(configuration: configuration, file: file)
+                        }
                     }
-                }
-                """
-            )
+                    """
+                )
+            ),
+            try (node.correctableArgument(context) && !node.explicitRewriterArgument(context)).ifTrue(
+                try ExtensionDeclSyntax("""
+                    extension \(type): SwiftSyntaxCorrectableRule {}
+                    """
+                )
+            ),
+            try node.optInArgument(context).ifTrue(
+                try ExtensionDeclSyntax("""
+                    extension \(type): OptInRule {}
+                    """
+                )
+            ),
         ].compactMap { $0 }
-    }
-
-    private static func makeExtension(
-        dependingOn argument: ExprSyntax?,
-        in context: some MacroExpansionContext,
-        with content: SyntaxNodeString
-    ) throws -> ExtensionDeclSyntax? {
-        if let argument {
-            if argument.isBooleanLiteral {
-                if argument.isTrueLiteral {
-                    return try ExtensionDeclSyntax(content)
-                }
-            } else {
-                context.diagnose(SwiftLintCoreMacroError.noBooleanLiteral.diagnose(at: argument))
-            }
-        }
-        return nil
     }
 }
 
 private extension AttributeSyntax {
-    var foldArgument: ExprSyntax? {
-        findArgument(withName: "foldExpressions")
+    func foldArgument(_ context: some MacroExpansionContext) -> Bool {
+        findArgument(withName: "foldExpressions", in: context)
     }
 
-    var explicitRewriterArgument: ExprSyntax? {
-        findArgument(withName: "explicitRewriter")
+    func explicitRewriterArgument(_ context: some MacroExpansionContext) -> Bool {
+        findArgument(withName: "explicitRewriter", in: context)
     }
 
-    private func findArgument(withName name: String) -> ExprSyntax? {
+    func correctableArgument(_ context: some MacroExpansionContext) -> Bool {
+        findArgument(withName: "correctable", in: context)
+    }
+
+    func optInArgument(_ context: some MacroExpansionContext) -> Bool {
+        findArgument(withName: "optIn", in: context)
+    }
+
+    private func findArgument(withName name: String, in context: some MacroExpansionContext) -> Bool {
         if case let .argumentList(args) = arguments, let first = args.first(where: { $0.label?.text == name }) {
-            first.expression
-        } else {
-            nil
+            let expr = first.expression
+            if expr.isBooleanLiteral {
+                return expr.isTrueLiteral
+            }
+            context.diagnose(SwiftLintCoreMacroError.noBooleanLiteral.diagnose(at: expr))
         }
+        return false
     }
 }
 
@@ -81,5 +91,11 @@ private extension ExprSyntax {
 
     var isTrueLiteral: Bool {
         `as`(BooleanLiteralExprSyntax.self)?.literal.text == "true"
+    }
+}
+
+private extension Bool {
+    func ifTrue<P: SyntaxProtocol>(_ result: @autoclosure () throws -> P) rethrows -> P? {
+        self ? try result() : nil
     }
 }

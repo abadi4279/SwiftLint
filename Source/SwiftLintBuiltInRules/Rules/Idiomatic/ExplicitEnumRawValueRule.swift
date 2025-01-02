@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct ExplicitEnumRawValueRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct ExplicitEnumRawValueRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -39,7 +39,7 @@ struct ExplicitEnumRawValueRule: OptInRule {
             enum Numbers: Algebra {
               case one
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -74,7 +74,7 @@ struct ExplicitEnumRawValueRule: OptInRule {
                   case ↓one, ↓two
                 }
             }
-            """)
+            """),
         ]
     )
 }

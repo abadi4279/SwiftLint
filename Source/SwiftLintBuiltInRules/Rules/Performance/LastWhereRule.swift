@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct LastWhereRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct LastWhereRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -14,7 +14,7 @@ struct LastWhereRule: OptInRule {
             Example("myList.last(where: { $0 % 2 == 0 })"),
             Example("match(pattern: pattern).filter { $0.last == .identifier }"),
             Example("(myList.filter { $0 == 1 }.suffix(2)).last"),
-            Example(#"collection.filter("stringCol = '3'").last"#)
+            Example(#"collection.filter("stringCol = '3'").last"#),
         ],
         triggeringExamples: [
             Example("↓myList.filter { $0 % 2 == 0 }.last"),
@@ -23,7 +23,7 @@ struct LastWhereRule: OptInRule {
             Example("↓myList.map { $0 + 1 }.filter({ $0 % 2 == 0 }).last?.something()"),
             Example("↓myList.filter(someFunction).last"),
             Example("↓myList.filter({ $0 % 2 == 0 })\n.last"),
-            Example("(↓myList.filter { $0 == 1 }).last")
+            Example("(↓myList.filter { $0 == 1 }).last"),
         ]
     )
 }

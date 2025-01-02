@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct ConditionalReturnsOnNewlineRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct ConditionalReturnsOnNewlineRule: Rule {
     var configuration = ConditionalReturnsOnNewlineConfiguration()
 
     static let description = RuleDescription(
@@ -19,7 +19,7 @@ struct ConditionalReturnsOnNewlineRule: OptInRule {
             Example("""
             guard something
             else { return }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("↓guard true else { return }"),
@@ -29,7 +29,7 @@ struct ConditionalReturnsOnNewlineRule: OptInRule {
             Example("↓if true { return \"YES\" } else { return \"NO\" }"),
             Example("""
             ↓guard condition else { XCTFail(); return }
-            """)
+            """),
         ]
     )
 }

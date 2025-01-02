@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct ConvenienceTypeRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct ConvenienceTypeRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -73,7 +73,7 @@ struct ConvenienceTypeRule: OptInRule {
             @globalActor actor MyActor {
               static let shared = MyActor()
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -112,7 +112,7 @@ struct ConvenienceTypeRule: OptInRule {
             ↓class SomeClass {
                 static func foo() {}
             }
-            """)
+            """),
         ]
     )
 }

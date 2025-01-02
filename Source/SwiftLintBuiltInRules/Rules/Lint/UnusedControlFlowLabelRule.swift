@@ -28,7 +28,7 @@ struct UnusedControlFlowLabelRule: Rule {
                     break loop
                 }
             } while true
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("↓loop: while true { break }"),
@@ -48,7 +48,7 @@ struct UnusedControlFlowLabelRule: Rule {
                     break
                 }
             } while true
-            """)
+            """),
         ],
         corrections: [
             Example("↓loop: while true { break }"): Example("while true { break }"),
@@ -80,7 +80,7 @@ struct UnusedControlFlowLabelRule: Rule {
                         break
                     }
                 } while true
-                """)
+                """),
         ]
     )
 }
@@ -99,10 +99,8 @@ private extension UnusedControlFlowLabelRule {
             guard let violationPosition = node.violationPosition else {
                 return super.visit(node)
             }
-
-            let newNode = node.statement.with(\.leadingTrivia, node.leadingTrivia)
             correctionPositions.append(violationPosition)
-            return visit(newNode).as(StmtSyntax.self) ?? newNode
+            return visit(node.statement.with(\.leadingTrivia, node.leadingTrivia))
         }
     }
 }

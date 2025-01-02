@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct OverriddenSuperCallRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct OverriddenSuperCallRule: Rule {
     var configuration = OverriddenSuperCallConfiguration()
 
     static let description = RuleDescription(
@@ -46,7 +46,7 @@ struct OverriddenSuperCallRule: OptInRule {
                     }
                 }
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -71,7 +71,7 @@ struct OverriddenSuperCallRule: OptInRule {
                 override func didReceiveMemoryWarning() {↓
                 }
             }
-            """)
+            """),
         ]
     )
 }

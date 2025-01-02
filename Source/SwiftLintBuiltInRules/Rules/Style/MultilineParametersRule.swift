@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct MultilineParametersRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct MultilineParametersRule: Rule {
     var configuration = MultilineParametersConfiguration()
 
     static let description = RuleDescription(
@@ -41,6 +41,12 @@ private extension MultilineParametersRule {
                 let line = locationConverter.location(for: position).line
                 linesWithParameters.insert(line)
                 numberOfParameters += 1
+            }
+
+            if let maxNumberOfSingleLineParameters = configuration.maxNumberOfSingleLineParameters,
+               configuration.allowsSingleLine,
+               numberOfParameters > maxNumberOfSingleLineParameters {
+                return true
             }
 
             guard linesWithParameters.count > (configuration.allowsSingleLine ? 1 : 0),

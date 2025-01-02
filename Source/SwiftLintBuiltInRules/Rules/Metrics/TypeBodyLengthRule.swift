@@ -1,12 +1,14 @@
+import SwiftLintCore
+
 private func wrapExample(
     prefix: String = "",
     _ type: String,
     _ template: String,
     _ count: Int,
     _ add: String = "",
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line) -> Example {
-    return Example("\(prefix)\(type) Abc {\n" +
+    Example("\(prefix)\(type) Abc {\n" +
                    repeatElement(template, count: count).joined() + "\(add)}\n", file: file, line: line)
 }
 
@@ -23,7 +25,7 @@ struct TypeBodyLengthRule: SwiftSyntaxRule {
                 wrapExample(type, "let abc = 0\n", 249),
                 wrapExample(type, "\n", 251),
                 wrapExample(type, "// this is a comment\n", 251),
-                wrapExample(type, "let abc = 0\n", 249, "\n/* this is\na multiline comment\n*/")
+                wrapExample(type, "let abc = 0\n", 249, "\n/* this is\na multiline comment\n*/"),
             ]
         }),
         triggeringExamples: ["class", "struct", "enum", "actor"].map({ type in

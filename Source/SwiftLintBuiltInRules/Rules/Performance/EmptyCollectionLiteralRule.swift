@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct EmptyCollectionLiteralRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct EmptyCollectionLiteralRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -13,7 +13,7 @@ struct EmptyCollectionLiteralRule: OptInRule {
             Example("myArray = []"),
             Example("myArray.isEmpty"),
             Example("!myArray.isEmpty"),
-            Example("myDict = [:]")
+            Example("myDict = [:]"),
         ],
         triggeringExamples: [
             Example("myArray↓ == []"),
@@ -23,7 +23,7 @@ struct EmptyCollectionLiteralRule: OptInRule {
             Example("myDict↓ != [:]"),
             Example("myDict↓ == [: ]"),
             Example("myDict↓ == [ :]"),
-            Example("myDict↓ == [ : ]")
+            Example("myDict↓ == [ : ]"),
         ]
     )
 }

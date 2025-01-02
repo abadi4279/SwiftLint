@@ -2,6 +2,71 @@
 
 #### Breaking
 
+* The command plugin now requires write permissions so that it works with the `--fix` option without an error.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* The artifact bundle name has changed. `SwiftLintBinary-macos.artifactbundle.zip` is now called 
+  `SwiftLintBinary.artifactbundle.zip`. It now includes an AMD64 Linux binary.
+  [Bradley Mackey](https://github.com/bradleymackey)
+  [#5514](https://github.com/realm/SwiftLint/issues/5514)
+
+* The `inert_defer` and `unused_capture_list` rules have completely been removed after being deprecated for 2 years.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* SwiftLint now requires a Swift 6 or higher compiler to build.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* The `private_unit_test` rule's deprecated `regex` configuration option has been removed after 2 years.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5912](https://github.com/realm/SwiftLint/issues/5912)
+
+#### Experimental
+
+* None.
+
+#### Enhancements
+
+* Add Xcode command plugin allowing to run SwiftLint from within Xcode.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Add new `async_without_await` opt-in rule that checks if an `async` declaration contains at least one `await`.  
+  [Jan Kolarik](https://github.com/jkolarik-paylocity)
+  [#5082](https://github.com/realm/SwiftLint/issues/5082)
+
+* Support replacing identity expressions with `\.self` in `prefer_key_path` rule from Swift 6 on.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Support linting only provided file paths with command plugins.  
+  [DanSkeel](https://github.com/DanSkeel)
+
+* Add new category for `@IBSegueAction` to `type_contents_order` rule.  
+  [dk-talks](https://github.com/dk-talks)
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Add new `redundant_sendable` rule that triggers on `Sendable` conformances of
+  types that are implicitly already `Sendable` due to being actor-isolated. It
+  is enabled by default.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Improve performance when exclude patterns resolve to a large set of files.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5018](https://github.com/realm/SwiftLint/issues/5018)
+
+#### Bug Fixes
+
+* Ignore super calls with trailing closures in `unneeded_override` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5886](ttps://github.com/realm/SwiftLint/issues/5886)
+
+* If violations are detected by `lint` or `analyze`, still perform an update
+  check for new versions of SwiftLint if requested.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5904](ttps://github.com/realm/SwiftLint/issues/5904)
+
+## 0.57.1: Squeaky Clean Cycle
+
+#### Breaking
+
 * None.
 
 #### Experimental
@@ -9,6 +74,480 @@
 * None.
 
 #### Enhancements
+
+* Suggest failable `String(bytes:encoding:)` initializer in
+  `optional_data_string_conversion` rule as it accepts all `Sequence`
+  types.  
+  [Jordan Rose](https://github.com/jrose-signal)
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Support reading files to lint from Input File Lists provided
+  by Run Script Build Phases in Xcode using the command-line
+  argument `--use-script-input-file-lists`.  
+  [BlueVirusX](https://github.com/BlueVirusX)
+
+* Adds a `lenient` configuration file setting, equivalent to the `--lenient`
+  command line option.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5801](https://github.com/realm/SwiftLint/issues/5801)
+
+* Support type casting on configuration option values defined by environment variables.
+  Without a cast, these values would always be treated as strings leading to a potentially
+  invalid configuration.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5774](https://github.com/realm/SwiftLint/issues/5774)
+
+* Add new option `max_number_of_single_line_parameters` that allows only the specified maximum
+  number of parameters to be on one line when `allows_single_line = true`. If the limit is
+  exceeded, the rule will still trigger. Confusing option combinations like `allows_single_line = false`
+  together with `max_number_of_single_line_parameters > 1` will be reported.  
+  [kimdv](https://github.com/kimdv)
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5781](https://github.com/realm/SwiftLint/issues/5781)
+
+* The `redundant_type_annotation` rule gains a new option,
+  `ignore_properties`, that skips enforcement on members in a
+  type declaration (like a `struct`). This helps the rule coexist with
+  the `explicit_type_interface` rule that requires such redundancy.  
+  [jaredgrubb](https://github.com/jaredgrubb)
+  [#3750](https://github.com/realm/SwiftLint/issues/3750)
+
+* Allow inherited isolation parameter to be first in function signatures
+  depending on the new option `ignore_first_isolation_inheritance_parameter`
+  which is `true` by default.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5793](https://github.com/realm/SwiftLint/issues/5793)
+
+#### Bug Fixes
+
+* Run command plugin in whole package if no targets are defined in the
+  package manifest.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5787](https://github.com/realm/SwiftLint/issues/5787)
+
+* Silence `superfluous_else` rule on `if` expressions with only a single
+  availability condition.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5833](https://github.com/realm/SwiftLint/issues/5833)
+
+* Stop triggering the `control_statement` rule on closures being directly
+  called as conditions.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5846](https://github.com/realm/SwiftLint/issues/5846)
+
+* Do not trigger `self_in_property_initialization` rule on `self` in
+  key paths expressions.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5835](https://github.com/realm/SwiftLint/issues/5835)
+
+* Allow to specify transitive modules to be taken into account by
+  `unused_import` rule. This avoids that required imports are removed.  
+  [Paul Taykalo](https://github.com/PaulTaykalo)
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5167](https://github.com/realm/SwiftLint/issues/5167)
+
+* Only pass cache path and directory paths to commands that accept these arguments
+  in the command plugin.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5848](https://github.com/realm/SwiftLint/issues/5848)
+
+* Do not throw deprecation warning if deprecated property is not
+  presented in configuration.  
+  [chipp](https://github.com/chipp)
+  [#5791](https://github.com/realm/SwiftLint/issues/5791)
+
+* The `prefer_type_checking` rule will no longer trigger for non-optional
+  type casting (`as`), or for comparisons to optional types.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5802](https://github.com/realm/SwiftLint/issues/5802)
+
+* Fixes an issue where the `superfluous_disable_command` rule could generate
+  false positives for nested disable commands for custom rules.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5788](https://github.com/realm/SwiftLint/issues/5788)
+
+* Fixes the `--only-rule` command line option, when a default `.swiftlint.yml`
+  is absent. Additionally rules specified with `--only-rule` on the command
+  line can now be disabled in a child configuration, to allow specific
+  directories to be excluded from the rule (or from being auto-corrected by
+  the rule), and `--only-rule` can now be specified multiple times
+  to run multiple rules.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5711](https://github.com/realm/SwiftLint/issues/5711)
+
+* Fixes `file_name` rule to match fully-qualified names of nested types.
+  Additionally adds a `require_fully_qualified_names` boolean option to enforce 
+  that file names match nested types only using their fully-qualified name.  
+  [fraioli](https://github.com/fraioli)
+  [#5840](https://github.com/realm/SwiftLint/issues/5840)
+
+* Fixes an issue where the `vertical_whitespace_between_cases` rule does not
+  recognize `@unknown default`.  
+  [Jared Grubb](https://github.com/jaredtrubb)
+  [#5788](https://github.com/realm/SwiftLint/issues/3511)
+
+## 0.57.0: Squeaky Clean Cycle
+
+#### Breaking
+
+* The deprecated `anyobject_protocol` rule has now been removed.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5769](https://github.com/realm/SwiftLint/issues/5769)
+
+* Revert the part of the `non_optional_string_data_conversion`
+  rule that enforces non-failable conversions of `Data` to UTF-8
+  `String`. This is due to the fact that the data to be converted
+  can be arbitrary and especially doesn't need to represent a valid
+  UTF-8-encoded string.  
+  [Sam Rayner](https://github.com/samrayner)
+  [#5263](https://github.com/realm/SwiftLint/issues/5263)
+
+#### Experimental
+
+* None.
+
+#### Enhancements
+
+* Add `ignore_multiline_type_headers` and `ignore_multiline_statement_conditions`
+  options to `opening_brace` rule to allow opening braces to be on a new line after
+  multiline type headers or statement conditions. Rename `allow_multiline_func` to
+  `ignore_multiline_function_signatures`.  
+  [leonardosrodrigues0](https://github.com/leonardosrodrigues0)
+  [#3720](https://github.com/realm/SwiftLint/issues/3720)
+
+* Add new `optional_data_string_conversion` rule to enforce
+  failable conversions of `Data` to UTF-8 `String`.  
+  [Sam Rayner](https://github.com/samrayner)
+  [#5263](https://github.com/realm/SwiftLint/issues/5263)
+
+* The `no_magic_numbers` rule will now ignore violations in
+  SwiftUI's `Preview` macro.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5778](https://github.com/realm/SwiftLint/issues/5778)
+
+#### Bug Fixes
+
+* `superfluous_disable_command` violations are now triggered for
+  custom rules.  
+  [Marcelo Fabri](https://github.com/marcelofabri)
+  [Martin Redington](https://github.com/mildm8nnered)
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#4754](https://github.com/realm/SwiftLint/issues/4754)
+
+* Trailing comments are now preserved by the `opening_brace` rule when
+  rewriting.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5751](https://github.com/realm/SwiftLint/issues/5751)
+
+## 0.56.2: Heat Pump Dryer
+
+#### Breaking
+
+* None.
+
+#### Experimental
+
+* None.
+
+#### Enhancements
+
+* None.
+
+#### Bug Fixes
+
+* Ignore initializers with attributes in `unneeded_synthesized_initializer` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5153](https://github.com/realm/SwiftLint/issues/5153)
+
+* Silence `prefer_key_path` rule on macro expansion expressions.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5744](https://github.com/realm/SwiftLint/issues/5744)
+
+* Check `if` expressions nested arbitrarily deep in `contrasted_opening_brace` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5752](https://github.com/realm/SwiftLint/issues/5752)
+
+* Align left closure brace with associated parent function call in `contrasted_opening_brace` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5752](https://github.com/realm/SwiftLint/issues/5752)
+
+* Align left brace of additional trailing closures with right brace of previous trailing closure
+  in `contrasted_opening_brace` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5752](https://github.com/realm/SwiftLint/issues/5752)
+
+* Trigger on empty closure blocks in `no_empty_block` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5762](https://github.com/realm/SwiftLint/issues/5762)
+
+* Silence `unneeded_override` rule on methods and initializers with attributes.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5753](https://github.com/realm/SwiftLint/issues/5753)
+
+## 0.56.1: Heat Pump Dryer
+
+#### Breaking
+
+* None.
+
+#### Experimental
+
+* None.
+
+#### Enhancements
+
+* None.
+
+#### Bug Fixes
+
+* Let `contrasted_opening_brace` be an opt-in rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+## 0.56.0: Heat Pump Dryer
+
+#### Breaking
+
+* The deprecated `--path` and `--in-process-sourcekit` arguments have now been
+  removed completely.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5614](https://github.com/realm/SwiftLint/issues/5614)
+
+* When SwiftLint corrects violations automatically (`swiftlint lint --fix`)
+  it doesn't report the exact location of the fix any longer. The new format
+  is `<file-path>: Correcting <rule-name>` without line and column numbers.
+  Reason: Correction positions are likely just incorrect, especially when
+  multiple rules apply their rewrites. Fixing that is not trivial and likely
+  not worth the effort also considering that there haven't been any bug
+  reports about wrong correction positions so far.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+#### Experimental
+
+* None.
+
+#### Enhancements
+
+* Add new `attribute_name_spacing` rule to enforce no trailing whitespace between
+  attribute names and parentheses, ensuring compatibility with Swift 6, where this spacing
+  causes compilation errors.  
+  [aryamansharda](https://github.com/aryamansharda)
+  [#5667](https://github.com/realm/SwiftLint/issues/5667)
+
+* Linting got up to 30% faster due to the praisworthy performance
+  improvements done in the [SwiftSyntax](https://github.com/swiftlang/swift-syntax)
+  library.
+
+* Rewrite the following rules with SwiftSyntax:
+  * `missing_docs`
+
+  [woxtu](https://github.com/woxtu)  
+  [SimplyDanny](https://github.com/SimplyDanny)  
+
+* Add new `prefer_key_path` rule that triggers when a trailing closure on a standard
+  function call is only hosting a (chained) member access expression since the closure
+  can be replaced with a key path argument. Likewise, it triggers on closure arguments.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Adds `baseline` and `write_baseline` configuration file settings, equivalent
+  to the `--baseline` and `--write-baseline` command line options.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5552](https://github.com/realm/SwiftLint/issues/5552)
+
+* Add `no_empty_block` opt-in rule to validate that code blocks are not empty.
+  They should at least contain a comment.  
+  [Ueeek](https://github.com/Ueeek)
+  [#5615](https://github.com/realm/SwiftLint/issues/5615)
+
+* Add new `contrasted_opening_brace` rule that enforces opening
+  braces to be on a separate line after the preceding declaration.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Add new `unused_parameter` rule that triggers on function/initializer/subscript
+  parameters that are not used inside of the function/initializer/subscript.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#2120](https://github.com/realm/SwiftLint/issues/2120)
+
+* Support `--target` paths being passed to command plugin by Xcode.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5603](https://github.com/realm/SwiftLint/issues/5603)
+
+* Add modified configurations to examples in rule documentation.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Add new option `evaluate_effective_access_control_level` to `missing_docs`
+  rule. Setting it to `true` stops the rule from triggering on declarations
+  inside of types with lower visibility. These declarations effectively
+  have at most the same access level.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Add new `--check-for-updates` command line option for the `lint`, `analyze`,
+  and `version` subcommands to check for new versions  of SwiftLint, and an
+  equivalent `check_for_updates` configuration file setting.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [Ian Leitch](https://github.com/ileitch)
+  [#5613](https://github.com/realm/SwiftLint/issues/5613)
+
+* Add new `--only-rule` command line option for the `lint` and `analyze`,
+  subcommands that overrides configuration file rule enablement and
+  disablement, in particular to facilitate running `--fix` for single rules
+  without having to temporarily edit the configuration file.
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5666](https://github.com/realm/SwiftLint/issues/5666)
+
+#### Bug Fixes
+
+* Fix a few false positives and negatives by updating the parser to support
+  Swift 6 with all its new language constructs.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+
+* Stop triggering `mark` rule on "mark" comments in the middle of another
+  comment.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5592](https://github.com/realm/SwiftLint/issues/5592)
+
+* Don't consider specialized imports with attributes as duplicates in
+  `duplicate_imports` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5716](https://github.com/realm/SwiftLint/issues/5716)
+
+* Use correct types and relative paths in SARIF reporter output. Generally
+  avoid escaping slashes in JSON output as well.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5598](https://github.com/realm/SwiftLint/issues/5598)
+  [#5599](https://github.com/realm/SwiftLint/issues/5599)
+
+* Keep initializers with attributed parameters in
+  `unneeded_synthesized_initializer` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5153](https://github.com/realm/SwiftLint/issues/5153)
+
+* Make `vertical_whitespace_between_cases` rule work for
+  cases ending with a string literal.  
+  [ilendemli](https://github.com/ilendemli)
+  [#5612](https://github.com/realm/SwiftLint/issues/5612)
+
+* Ignore access level modifiers restricted to value setting in
+  `extension_access_modifier` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5623](https://github.com/realm/SwiftLint/issues/5623)
+
+* Fix `baseline compare` incorrectly reporting some violations
+  as new, and also now sorts the violations from `baseline compare`
+  deterministically.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5606](https://github.com/realm/SwiftLint/issues/5606)
+
+* Fix rewriting for `implicit_return` rule when violations are
+  nested within each other.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5660](https://github.com/realm/SwiftLint/issues/5660)
+
+* Fix `opening_brace` correction and make sure that disable commands
+  are taken into account before applying a fix.  
+  [swiftty](https://github.com/swiftty)
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5598](https://github.com/realm/SwiftLint/issues/5598)
+
+* Violations of the `typesafe_array_init` rule will now be correctly
+  reported as such, instead of as violations of the `array_init`
+  rule.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5709](https://github.com/realm/SwiftLint/issues/5709)
+
+## 0.55.1: Universal Washing Powder
+
+#### Breaking
+
+* None.
+
+#### Experimental
+
+* None.
+
+#### Enhancements
+
+* Clarify wording of `static_over_final_class` rule's violation message.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5570](https://github.com/realm/SwiftLint/issues/5570)
+
+#### Bug Fixes
+
+* Fix Bazel build when `bzlmod` is not in use by adding transitive dependencies
+  explicitly.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5568](https://github.com/realm/SwiftLint/issues/5568)
+
+* Treat condionally activatable variable declarations and initializer as if
+  they were always active in `unneeded_synthesized_initializer` rule to avoid
+  compilation issues when unexpected items are there after all.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5574](https://github.com/realm/SwiftLint/issues/5574)
+
+* Silence `unused_enumerated` rule when `$0` in a closure is explicitly unpacked.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5573](https://github.com/realm/SwiftLint/issues/5573)
+
+* Remove redundant initializers in `unneeded_override` rule only when checking
+  initializers is actually enabled in the configuration.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5571](https://github.com/realm/SwiftLint/issues/5571)
+
+* Respect comments before opening brace in `opening_brace` rule when there is
+  one space before the brace after the comment. Everything else is still a
+  violation, yet the rewriter will not remove the comment anymore.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5578](https://github.com/realm/SwiftLint/issues/5578)
+
+## 0.55.0: Universal Washing Powder
+
+#### Breaking
+
+* Rewrite `SwiftLintBuildToolPlugin` using `BUILD_WORKSPACE_DIRECTORY` without relying
+  on the `--config` option.  
+  [Garric Nahapetian](https://github.com/garricn)
+
+* Introduce SwiftLintCommandPlugin.
+  Rename SwiftLintBuildToolPlugin.
+  Add Swift Package Manager installation instructions.  
+  [garricn](https://github.com/garricn)
+  
+* Fix Code Climate reporter output by having lower case severity
+  values to comply with the Code Climate specification.  
+  [waitButY](https://github.com/waitbutY)
+
+* The `superfluous_disable_command` rule will now be enabled for the `analyze`
+  command, unless it has been disabled, and will warn about superfluous
+  disablement of analyzer rules.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#4792](https://github.com/realm/SwiftLint/issues/4792)
+
+* With the introduction of the `consider_default_literal_types_redundant`
+  option to the `redundant_type_annotation` rule, `Bool` literals will no
+  longer be considered redundant by default. Set this option to true to
+  preserve the previous behavior.  
+  [Garric Nahapetian](https://github.com/garricn)
+
+#### Experimental
+
+* Add two new options to the `lint` and `analyze` commands: `--write-baseline`
+  to save a baseline to disk, and `--baseline` to read a saved baseline and
+  use it to filter out detected pre-existing violations. A new `baseline`
+  command uses the reporters to print the violations in a baseline.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5475](https://github.com/realm/SwiftLint/pull/5475)
+  [#3421](https://github.com/realm/SwiftLint/pull/3421)
+
+#### Enhancements
+
+* Add a reporter that outputs violations in the Static
+  Analysis Results Interchange Format (SARIF).  
+  [waitButY](https://github.com/waitbutY)
+
+* Ignore absence of a non-initial local config instead of
+  falling back to default.  
+  [kohtenko](https://github.com/kohtenko)
 
 * Add new option `ignore_typealiases_and_associatedtypes` to
   `nesting` rule. It excludes `typealias` and `associatedtype`
@@ -19,6 +558,11 @@
 * Prevent from compiling `SwiftLint` target when only using `SwiftLintPlugin` on macOS.  
   [Julien Baillon](https://github.com/julien-baillon)
   [#5372](https://github.com/realm/SwiftLint/issues/5372)
+
+* Allow to set the severity of rules (if they have one) in the short form
+  `rule_name: warning|error` provided that no other attributes need to be
+  configured.  
+  [SimplyDanny](https://github.com/SimplyDanny)
 
 * Add new `ignore_one_liners` option to `switch_case_alignment`
   rule to ignore switch statements written in a single line.  
@@ -31,11 +575,22 @@
   [SimplyDanny](https://github.com/SimplyDanny)
   [#70](https://github.com/realm/SwiftLint/issues/70)
 
+* Warn when `--fix` comes together with `--strict` or `--lenient` as only `--fix`
+  takes effect then.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5387](https://github.com/realm/SwiftLint/pull/5387)
+
 * Add new `one_declaration_per_file` rule that allows only a
   single class/struct/enum/protocol declaration per file.
   Extensions are an exception; more than one is allowed.  
   [Muhammad Zeeshan](https://github.com/mzeeshanid)
   [#2802](https://github.com/realm/SwiftLint/issues/2802)
+
+* Add new `ignore_attributes` option to `redundant_type_annotation` rule
+  that allows disabling the rule for properties that are marked with at least
+  one of the configured attributes.  
+  [tonell-m](https://github.com/tonell-m)
+  [#5366](https://github.com/realm/SwiftLint/issues/5366)
 
 * Rewrite the following rules with SwiftSyntax:
   * `explicit_acl`
@@ -48,6 +603,7 @@
   * `nimble_operator`
   * `opening_brace`
   * `orphaned_doc_comment`
+  * `redundant_type_annotation`
   * `trailing_closure`
   * `void_return`
 
@@ -56,6 +612,7 @@
   [Marcelo Fabri](https://github.com/marcelofabri)  
   [swiftty](https://github.com/swiftty)  
   [KS1019](https://github.com/KS1019)  
+  [tonell-m](https://github.com/tonell-m)
 
 * Print invalid keys when configuration parsing fails.  
   [SimplyDanny](https://github.com/SimplyDanny)
@@ -103,8 +660,8 @@
   [SimplyDanny](https://github.com/SimplyDanny)
   [#5418](https://github.com/realm/SwiftLint/pull/5418)
 
-* Add new `non_optional_string_data_conversion` rule to enforce 
-  non-failable conversions of UTF-8 `String` <-> `Data`.    
+* Add new `non_optional_string_data_conversion` rule to enforce
+  non-failable conversions of UTF-8 `String` <-> `Data`.  
   [Ben P](https://github.com/ben-p-commits)
   [#5263](https://github.com/realm/SwiftLint/issues/5263)
 
@@ -121,8 +678,48 @@
 
 * Make `empty_count` auto-correctable.  
   [KS1019](https://github.com/KS1019/)
+  
+* Make `private_swiftui_state` auto-correctable.  
+  [mt00chikin](https://github.com/mt00chikin)
+
+* Make `trailing_closure` correctable.  
+  [KS1019](https://github.com/KS1019/)
+
+* Add new `static_over_final_class` rule to prefer `static` over
+  `final class` declaration.  
+  [phlippieb](https://github.com/phlippieb)
+  [#5471](https://github.com/realm/SwiftLint/issues/5471)
+
+* Extends `unused_enumerated` rule to cover closure parameters, to
+  detect cases like `list.enumerated().map { idx, _ in idx }` and
+  `list.enumerated().map { $1 }`.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5470](https://github.com/realm/SwiftLint/issues/5470)
+
+* Include `Double`, `Int` and `String` to the exiting redundant type validation
+  check of `Bool` in the `redundant_type_annotation` rule. Add
+  `consider_default_literal_types_redundant` option supporting `Bool`,
+  `Double`, `Int` and `String`. Setting this option to `true` lets the rule
+  consider said types in declarations like `let i: Int = 1` or
+  `let s: String = ""` as redundant.  
+  [Garric Nahapetian](https://github.com/garricn)
+
+* Add new `prefer_type_checking` rule to prefer `a is X` over `a as? X != nil`.  
+  [ikelax](https://github.com/ikelax)  
+  [mildm8nnered](https://github.com/mildm8nnered)
+  [#5295](https://github.com/realm/SwiftLint/issues/5295)
 
 #### Bug Fixes
+
+* Invalid keys in a configuration don't lead to the default configuration being
+  used anymore. The invalid key will just be reported but otherwise ignored.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5565](https://github.com/realm/SwiftLint/issues/5565)
+
+* Fix version comparison algorithm which caused some version-dependent rules to
+  misbehave with Swift 5.10.  
+  [chandlerwall](https://github.com/chandlerwall)
+  [#5517](https://github.com/realm/SwiftLint/issues/5517)
 
 * Silence `discarded_notification_center_observer` rule in closures. Furthermore,
   handle `get` and `set` accessors correctly and consider implicit returns.  
@@ -133,6 +730,15 @@
   when attributes attached to declarations were spread over multiple lines.  
   [SimplyDanny](https://github.com/SimplyDanny)
   [#4801](https://github.com/realm/SwiftLint/pull/4801)
+
+* Support `private_over_fileprivate` rule for actors.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5489](https://github.com/realm/SwiftLint/pull/5489)
+
+* Ensure that declarations referenced only as extended types do not count as
+  used by means of the `unused_declaration` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#5550](https://github.com/realm/SwiftLint/issues/5550)
 
 * Fix some false positives in `multiline_literal_brackets` rule that would
   happen when comments are present.  
@@ -163,7 +769,12 @@
   are defined in a tuple like `let (a, b) = (5, 10)` or `let a = (2, 3)`.  
   [Martin Redington](https://github.com/mildm8nnered)
   [#5305](https://github.com/realm/SwiftLint/pull/5305)
-  
+
+* Take array and nested types into account in `redundant_type_annotation` rule.  
+  [SimplyDanny](https://github.com/SimplyDanny)
+  [#3141](https://github.com/realm/SwiftLint/pull/3141)
+  [#3146](https://github.com/realm/SwiftLint/pull/3146)
+
 * Silence `pattern_matching_keywords` rule when an identifier is referenced
   in the argument list of a matching enum case.  
   [SimplyDanny](https://github.com/SimplyDanny)
@@ -171,6 +782,28 @@
 
 * Don't trigger the `return_value_from_void_function` warning from initializers.  
   [mrbkap](https://github.com/mrbkap)
+
+* Fixes superfluous warnings about configurations for rules that were not
+  enabled, when the rules were enabled in a parent configuration.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#4858](https://github.com/realm/SwiftLint/issues/4858)
+
+* Add `all` pseudo-rule for `analyzer_rules` - enables all analyzer rules
+  that are not listed in `disabled_rules`.  
+  [woxtu](https://github.com/woxtu)
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#4999](https://github.com/realm/SwiftLint/issues/4999)
+
+* Updates the reasons provided by violations of the `blanket_disable_command`
+  to omit language about the end of the file, and to direct users to
+  re-enable the rule as soon as possible.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5450](https://github.com/realm/SwiftLint/issues/5450)
+
+* Add a `--working-directory` command line option, for users who cannot
+  otherwise control which directory SwiftLint is run from.  
+  [Martin Redington](https://github.com/mildm8nnered)
+  [#5424](https://github.com/realm/SwiftLint/issues/5424)
 
 ## 0.54.0: Macro-Economic Forces
 
@@ -838,10 +1471,6 @@
 * Catch more valid `no_magic_numbers` violations.  
   [JP Simard](https://github.com/jpsim)
 
-* Rewrite `SwiftLintPlugin` using `BUILD_WORKSPACE_DIRECTORY` without relying
-  on the `--config` option.  
-  [Garric Nahapetian](https://github.com/garricn)
-
 * Add `blanket_disable_command` rule that checks whether
   rules are re-enabled after being disabled.  
   [Martin Redington](https://github.com/mildm8nnered)
@@ -1451,7 +2080,7 @@ accordingly._
   progress bar instead of each file being processed.  
   [JP Simard](https://github.com/jpsim)
 
-* `--fix` now works with `--use-stdin`, printing the output to to STDOUT instead
+* `--fix` now works with `--use-stdin`, printing the output to STDOUT instead
   of crashing.  
   [SimplyDanny](https://github.com/SimplyDanny)
   [#4127](https://github.com/realm/SwiftLint/issues/4127)

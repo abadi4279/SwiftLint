@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct FallthroughRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct FallthroughRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -15,7 +15,7 @@ struct FallthroughRule: OptInRule {
             case .bar, .bar2, .bar3:
               something()
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -25,7 +25,7 @@ struct FallthroughRule: OptInRule {
             case .bar2:
               something()
             }
-            """)
+            """),
         ]
     )
 }

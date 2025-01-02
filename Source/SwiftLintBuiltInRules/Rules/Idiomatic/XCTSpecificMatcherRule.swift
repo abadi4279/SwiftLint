@@ -1,8 +1,8 @@
 import SwiftOperators
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct XCTSpecificMatcherRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct XCTSpecificMatcherRule: Rule {
     var configuration = XCTSpecificMatcherConfiguration()
 
     static let description = RuleDescription(
@@ -122,9 +122,9 @@ private enum TwoArgsXCTAssert: String {
         //
         let arguments = node.arguments
             .prefix(2)
-            .map { $0.expression.trimmedDescription }
+            .map(\.expression.trimmedDescription)
             .sorted { arg1, _ -> Bool in
-                return protectedArguments.contains(arg1)
+                protectedArguments.contains(arg1)
             }
 
         //

@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct ProhibitedSuperRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct ProhibitedSuperRule: Rule {
     var configuration = ProhibitedSuperConfiguration()
 
     static let description = RuleDescription(
@@ -32,7 +32,7 @@ struct ProhibitedSuperRule: OptInRule {
                     }
                 }
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -67,7 +67,7 @@ struct ProhibitedSuperRule: OptInRule {
                     }
                 }
             }
-            """)
+            """),
         ]
     )
 }

@@ -27,7 +27,7 @@ public struct RuleList {
         var tmpAliases = [String: String]()
 
         for rule in rules {
-            let identifier = rule.description.identifier
+            let identifier = rule.identifier
             tmpList[identifier] = rule
             for alias in rule.description.deprecatedAliases {
                 tmpAliases[alias] = identifier
@@ -40,7 +40,7 @@ public struct RuleList {
 
     // MARK: - Internal
 
-    internal func allRulesWrapped(configurationDict: [String: Any] = [:]) throws -> [ConfigurationRuleWrapper] {
+    package func allRulesWrapped(configurationDict: [String: Any] = [:]) throws -> [ConfigurationRuleWrapper] {
         var rules = [String: ConfigurationRuleWrapper]()
 
         // Add rules where configuration exists
@@ -72,12 +72,12 @@ public struct RuleList {
         return Array(rules.values)
     }
 
-    internal func identifier(for alias: String) -> String? {
-        return aliases[alias]
+    package func identifier(for alias: String) -> String? {
+        aliases[alias]
     }
 
-    internal func allValidIdentifiers() -> [String] {
-        return list.flatMap { _, rule -> [String] in
+    package func allValidIdentifiers() -> [String] {
+        list.flatMap { _, rule -> [String] in
             rule.description.allIdentifiers
         }
     }
@@ -85,7 +85,8 @@ public struct RuleList {
 
 extension RuleList: Equatable {
     public static func == (lhs: RuleList, rhs: RuleList) -> Bool {
-        return lhs.list.map { $0.0 } == rhs.list.map { $0.0 }
+        lhs.list.map(\.0) == rhs.list.map(\.0)
+            // swiftlint:disable:next prefer_key_path
             && lhs.list.map { $0.1.description } == rhs.list.map { $0.1.description }
             && lhs.aliases == rhs.aliases
     }

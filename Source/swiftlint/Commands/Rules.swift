@@ -1,11 +1,4 @@
 import ArgumentParser
-#if canImport(Darwin)
-import Darwin
-#elseif canImport(Glibc)
-import Glibc
-#else
-#error("Unsupported platform")
-#endif
 import Foundation
 import SwiftLintFramework
 import SwiftyTextTable
@@ -36,11 +29,10 @@ extension SwiftLint {
                     throw SwiftLintError.usageError(description: "No rule with identifier: \(ruleID)")
                 }
                 printDescription(for: rule, with: configuration)
-                ExitHelper.successfullyExit()
                 return
             }
             let rules = RulesFilter(enabledRules: configuration.rules)
-                .getRules(excluding: .excludingOptions(byCommandLineOptions: rulesFilterOptions))
+                .getRules(excluding: rulesFilterOptions.excludingOptions)
                 .list
                 .sorted { $0.0 < $1.0 }
             if configOnly {
@@ -57,7 +49,6 @@ extension SwiftLint {
                 )
                 print(table.render())
             }
-            ExitHelper.successfullyExit()
         }
 
         private func printDescription(for ruleType: any Rule.Type, with configuration: Configuration) {
@@ -70,10 +61,11 @@ extension SwiftLint {
             }
 
             print("\(description.consoleDescription)")
-            if rule.configurationDescription.hasContent {
+            let configDescription = rule.createConfigurationDescription()
+            if configDescription.hasContent {
                 print("\nConfiguration (YAML):\n")
                 print("  \(description.identifier):")
-                print(rule.configurationDescription.yaml().indent(by: 4))
+                print(configDescription.yaml().indent(by: 4))
             }
 
             guard description.triggeringExamples.isNotEmpty else { return }
@@ -85,13 +77,15 @@ extension SwiftLint {
         }
 
         private func printConfig(for rule: any Rule) {
-            if rule.configurationDescription.hasContent {
+            let configDescription = rule.createConfigurationDescription()
+            if configDescription.hasContent {
                 print("\(type(of: rule).identifier):")
-                print(rule.configurationDescription.yaml().indent(by: 2))
+                print(configDescription.yaml().indent(by: 2))
             }
         }
 
-        private func createInstance(of ruleType: any Rule.Type, using config: Configuration,
+        private func createInstance(of ruleType: any Rule.Type,
+                                    using config: Configuration,
                                     configure: Bool) -> any Rule {
             configure
                 ? config.configuredRule(forID: ruleType.identifier) ?? ruleType.init()
@@ -112,7 +106,7 @@ private extension TextTable {
             TextTableColumn(header: "kind"),
             TextTableColumn(header: "analyzer"),
             TextTableColumn(header: "uses sourcekit"),
-            TextTableColumn(header: "configuration")
+            TextTableColumn(header: "configuration"),
         ]
         self.init(columns: columns)
         func truncate(_ string: String) -> String {
@@ -141,7 +135,7 @@ private extension TextTable {
                 ruleType.description.kind.rawValue,
                 (rule is any AnalyzerRule) ? "yes" : "no",
                 (rule is any SourceKitFreeRule) ? "no" : "yes",
-                truncate((defaultConfig ? rule : configuredRule ?? rule).configurationDescription.oneLiner())
+                truncate((defaultConfig ? rule : configuredRule ?? rule).createConfigurationDescription().oneLiner()),
             ])
         }
     }

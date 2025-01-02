@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct RawValueForCamelCasedCodableEnumRule: OptInRule {
+@SwiftSyntaxRule(optIn: true)
+struct RawValueForCamelCasedCodableEnumRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
@@ -58,7 +58,7 @@ struct RawValueForCamelCasedCodableEnumRule: OptInRule {
                 case notAcceptable
                 case maybeAcceptable = -1
             }
-            """)
+            """),
         ],
         triggeringExamples: [
             Example("""
@@ -88,7 +88,7 @@ struct RawValueForCamelCasedCodableEnumRule: OptInRule {
                 case ↓notAcceptable
                 case maybeAcceptable = "maybe_acceptable"
             }
-            """)
+            """),
         ]
     )
 }

@@ -1,7 +1,7 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule
-struct ImplicitReturnRule: SwiftSyntaxCorrectableRule, OptInRule {
+@SwiftSyntaxRule(correctable: true, optIn: true)
+struct ImplicitReturnRule: Rule {
     var configuration = ImplicitReturnConfiguration()
 
     static let description = RuleDescription(
@@ -66,9 +66,9 @@ private extension ImplicitReturnRule {
                 return
             }
             let returnKeyword = returnStmt.returnKeyword
-            violations.append(returnKeyword.positionAfterSkippingLeadingTrivia)
-            violationCorrections.append(
-                ViolationCorrection(
+            violations.append(
+                at: returnKeyword.positionAfterSkippingLeadingTrivia,
+                correction: .init(
                     start: returnKeyword.positionAfterSkippingLeadingTrivia,
                     end: returnKeyword.endPositionBeforeTrailingTrivia
                             .advanced(by: returnStmt.expression == nil ? 0 : 1),

@@ -1,22 +1,22 @@
 import SwiftSyntax
 
-@SwiftSyntaxRule(foldExpressions: true)
-struct ContainsOverRangeNilComparisonRule: OptInRule {
+@SwiftSyntaxRule(foldExpressions: true, optIn: true)
+struct ContainsOverRangeNilComparisonRule: Rule {
     var configuration = SeverityConfiguration<Self>(.warning)
 
     static let description = RuleDescription(
         identifier: "contains_over_range_nil_comparison",
-        name: "Contains over Range Comparision to Nil",
+        name: "Contains over Range Comparison to Nil",
         description: "Prefer `contains` over `range(of:) != nil` and `range(of:) == nil`",
         kind: .performance,
         nonTriggeringExamples: [
             Example("let range = myString.range(of: \"Test\")"),
             Example("myString.contains(\"Test\")"),
             Example("!myString.contains(\"Test\")"),
-            Example("resourceString.range(of: rule.regex, options: .regularExpression) != nil")
+            Example("resourceString.range(of: rule.regex, options: .regularExpression) != nil"),
         ],
         triggeringExamples: ["!=", "=="].flatMap { comparison in
-            return [
+            [
                 Example("↓myString.range(of: \"Test\") \(comparison) nil")
             ]
         }

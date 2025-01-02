@@ -1,7 +1,7 @@
 import SwiftSyntax
 
 /// A contiguous region of Swift source code.
-public struct Region: Equatable {
+public struct Region: Equatable, Sendable {
     /// The location describing the start of the region. All locations that are less than this value
     /// (earlier in the source file) are not contained in this region.
     public let start: Location
@@ -28,7 +28,7 @@ public struct Region: Equatable {
     ///
     /// - returns: True if the specific location is contained in this region.
     public func contains(_ location: Location) -> Bool {
-        return start <= location && end >= location
+        start <= location && end >= location
     }
 
     /// Whether the specified rule is enabled in this region.
@@ -37,16 +37,20 @@ public struct Region: Equatable {
     ///
     /// - returns: True if the specified rule is enabled in this region.
     public func isRuleEnabled(_ rule: some Rule) -> Bool {
-        return !isRuleDisabled(rule)
+        !isRuleDisabled(rule)
     }
 
     /// Whether the specified rule is disabled in this region.
     ///
     /// - parameter rule: The rule whose status should be determined.
     ///
+    /// - note: For CustomRules, this will only return true if the `custom_rules` identifier
+    ///         is used with the `swiftlint` disable command, but this method is never
+    ///         called for CustomRules.
+    ///
     /// - returns: True if the specified rule is disabled in this region.
     public func isRuleDisabled(_ rule: some Rule) -> Bool {
-        return areRulesDisabled(ruleIDs: type(of: rule).description.allIdentifiers)
+        areRulesDisabled(ruleIDs: type(of: rule).description.allIdentifiers)
     }
 
     /// Whether the given rules are disabled in this region.
@@ -58,7 +62,7 @@ public struct Region: Equatable {
         if disabledRuleIdentifiers.contains(.all) {
             return true
         }
-        let regionIdentifiers = Set(disabledRuleIdentifiers.map { $0.stringRepresentation })
+        let regionIdentifiers = Set(disabledRuleIdentifiers.map(\.stringRepresentation))
         return !regionIdentifiers.isDisjoint(with: ruleIDs)
     }
 
@@ -70,7 +74,7 @@ public struct Region: Equatable {
     /// - returns: Deprecated rule aliases.
     public func deprecatedAliasesDisabling(rule: some Rule) -> Set<String> {
         let identifiers = type(of: rule).description.deprecatedAliases
-        return Set(disabledRuleIdentifiers.map { $0.stringRepresentation }).intersection(identifiers)
+        return Set(disabledRuleIdentifiers.map(\.stringRepresentation)).intersection(identifiers)
     }
 
     /// Converts this `Region` to a SwiftSyntax `SourceRange`.

@@ -6,14 +6,17 @@ import SwiftSyntaxMacros
 @main
 struct SwiftLintCoreMacros: CompilerPlugin {
     let providingMacros: [any Macro.Type] = [
-        AutoApply.self,
-        MakeAcceptableByConfigurationElement.self,
-        SwiftSyntaxRule.self
+        AutoConfigParser.self,
+        AcceptableByConfigurationElement.self,
+        SwiftSyntaxRule.self,
     ]
 }
 
 enum SwiftLintCoreMacroError: String, DiagnosticMessage {
     case notStruct = "Attribute can only be applied to structs"
+    case severityBasedWithoutProperty = """
+        Severity-based configuration without a 'severityConfiguration' property is invalid
+        """
     case notEnum = "Attribute can only be applied to enums"
     case noStringRawType = "Attribute can only be applied to enums with a 'String' raw type"
     case noBooleanLiteral = "Macro argument must be a boolean literal"

@@ -20,7 +20,15 @@ internal struct MarkRuleExamples {
               // MARK: good
         }
         """),
-        issue1749Example
+        Example("""
+        /// Comment
+        /// `xxx://marketingOptIn`
+        struct S {}
+
+          ///  //marketingOptIn
+        struct T {}
+        """, excludeFromDocumentation: true),
+        issue1749Example,
     ]
 
     static let triggeringExamples = [
@@ -54,7 +62,7 @@ internal struct MarkRuleExamples {
               ↓//MARK: bad
         }
         """),
-        issue1029Example
+        issue1029Example,
     ]
 
     static let corrections = [
@@ -77,7 +85,7 @@ internal struct MarkRuleExamples {
         Example("↓/// MARK:"): Example("// MARK:"),
         Example("↓/// MARK comment"): Example("// MARK: comment"),
         issue1029Example: issue1029Correction,
-        issue1749Example: issue1749Correction
+        issue1749Example: issue1749Correction,
     ]
 }
 
